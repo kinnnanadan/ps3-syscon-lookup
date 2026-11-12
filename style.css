@@ -1,45 +1,211 @@
-body {
-  font-family: sans-serif;
-  background-color: #f4f4f9;
-  color: #333;
-  margin: 0;
-  padding: 20px;
+/* ライトモード（通常）の配色定義 */
+:root {
+  --bg-color: #f4f5f7;
+  --card-bg: #ffffff;
+  --text-color: #222222;
+  --text-muted: #555555;
+  --border-color: #d1d5db;
+  --code-color: #d9383a;
+  --tag-bg: #e5e7eb;
+  --tag-text: #374151;
+  --btn-bg: #e5e7eb;
+  --btn-text: #1f2937;
+  --link-color: #0969da;
+  --shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
+
+/* ダークモードの配色定義 */
+[data-theme="dark"] {
+  --bg-color: #121212;
+  --card-bg: #1e1e1e;
+  --text-color: #e5e7eb;
+  --text-muted: #9ca3af;
+  --border-color: #374151;
+  --code-color: #ff6b6b;
+  --tag-bg: #2d3748;
+  --tag-text: #e2e8f0;
+  --btn-bg: #2d3748;
+  --btn-text: #f3f4f6;
+  --link-color: #58a6ff;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 20px 16px;
+  line-height: 1.6;
+  transition: background-color 0.2s, color 0.2s;
+}
+
 .container {
   max-width: 800px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 40px);
 }
-#searchInput {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  border: 2px solid #ccc;
-  border-radius: 6px;
-  box-sizing: border-box;
+
+main {
+  flex: 1;
+}
+
+/* ヘッダー周り */
+.site-header {
   margin-bottom: 20px;
 }
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.site-description {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* テーマ切替ボタン */
+.theme-btn {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid var(--border-color);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.theme-btn:hover {
+  opacity: 0.85;
+}
+
+/* 検索ボックス */
+.search-box {
+  margin-bottom: 20px;
+}
+
+#searchInput {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 16px; /* 16px以上にすることでスマホの自動ズームを防止 */
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#searchInput:focus {
+  border-color: var(--link-color);
+}
+
+/* エラーカード */
 .card {
-  background: #fff;
+  background-color: var(--card-bg);
   padding: 16px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
+  margin-bottom: 14px;
 }
+
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 8px;
 }
+
 .code {
-  font-size: 1.2em;
+  font-size: 1.25rem;
   font-weight: bold;
-  color: #d9534f;
-  font-family: monospace;
+  color: var(--code-color);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
+
 .category {
-  background: #e9ecef;
-  padding: 2px 8px;
+  background-color: var(--tag-bg);
+  color: var(--tag-text);
+  padding: 3px 10px;
   border-radius: 4px;
-  font-size: 0.85em;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.card h2 {
+  font-size: 1.1rem;
+  margin: 4px 0 10px 0;
+}
+
+.card p {
+  margin: 6px 0;
+  font-size: 0.95rem;
+}
+
+.no-result {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 30px 0;
+}
+
+/* フッター */
+.site-footer {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.site-footer a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  text-decoration: underline;
+}
+
+/* スマホ向けレイアウト調整（画面幅600px以下） */
+@media (max-width: 600px) {
+  body {
+    padding: 14px 12px;
+  }
+
+  h1 {
+    font-size: 1.25rem;
+  }
+
+  .theme-btn {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .code {
+    font-size: 1.15rem;
+  }
 }
