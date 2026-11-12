@@ -1,0 +1,23 @@
+[
+  {
+    "code": "A0801001",
+    "category": "Power / CELL",
+    "summary": "CELL BE 電源ライン異常（または周辺コンデンサ劣化）",
+    "cause": "CELL周辺のNEC/TOKINプロードライザの容量抜け、またはVCORE電源回路の不具合。",
+    "solution": "CELL側のNEC/TOKINをタンタルコンデンサ（470μF等）へ交換する。交換前にオシロスコープでリップル波形を確認推奨。"
+  },
+  {
+    "code": "A0801601",
+    "category": "CELL / Livelock",
+    "summary": "CELL Livelock（ハングアップ）",
+    "cause": "CELLの通信タイムアウト、またはRSXとのインターフェース異常。40nm換装機などでも発生しうる。",
+    "solution": "Sysconログの前後エラーを確認。NANDダンプの整合性チェック、またはCELL/RSX周辺のハンダクラック・抵抗値を点検する。"
+  },
+  {
+    "code": "A0803034",
+    "category": "RSX / BGA",
+    "summary": "RSXとCELL間の通信エラー（FlexIO / BGA不良）",
+    "cause": "90nm RSXのバンプ劣化（いわゆるYLODの主因）、またはBGAハンダクラック。",
+    "solution": "40nmまたは65nm RSXへの換装（Frankenstein MOD）を検討する。リフローは一時的な延命にしかならない。"
+  }
+]
