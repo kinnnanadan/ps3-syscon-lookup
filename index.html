@@ -20,8 +20,24 @@
 
     <main>
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="エラーコードやキーワードを入力 (例: 1001, 3034, CELL)">
+        <div class="search-input-wrapper">
+          <input type="text" id="searchInput" placeholder="エラーコードやキーワードを入力 (例: 1002, 3034, CELL)">
+          <button id="clearBtn" class="clear-btn hidden" aria-label="検索をクリア" title="クリア">×</button>
+        </div>
       </div>
+
+      <div class="filter-bar" id="filterBar" role="group" aria-label="エラーコード番台絞り込み">
+        <button class="filter-btn active" data-range="all">すべて</button>
+        <button class="filter-btn" data-range="1">1000番台</button>
+        <button class="filter-btn" data-range="2">2000番台</button>
+        <button class="filter-btn" data-range="3">3000番台</button>
+        <button class="filter-btn" data-range="4">4000番台</button>
+      </div>
+
+      <div class="result-meta">
+        <span id="resultCount"></span>
+      </div>
+
       <div id="results"></div>
     </main>
 
