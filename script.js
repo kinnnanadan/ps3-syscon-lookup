@@ -28,15 +28,6 @@ function applyTheme(theme) {
   }
 }
 
-// --- 重症度ラベル定義 ---
-const severityMap = {
-  critical:     { label: '重症度: 高（重度/BGA・内部）', className: 'severity-critical' },
-  high:         { label: '重症度: 中〜高（電源・起動系）', className: 'severity-high' },
-  medium:       { label: '重症度: 中（熱・外部要因）', className: 'severity-medium' },
-  'low-medium': { label: '重症度: 小〜中（電源回路・コンデンサ等）', className: 'severity-low-medium' },
-  low:          { label: '重症度: 小（コンデンサ交換等で復旧可）', className: 'severity-low' }
-};
-
 // --- DOM要素の取得 ---
 const searchInput = document.getElementById('searchInput');
 const clearBtn = document.getElementById('clearBtn');
@@ -89,17 +80,19 @@ function updateView() {
   const query = searchInput.value.trim().toLowerCase();
 
   const filtered = errorData.filter(item => {
-    // 1. 番台フィルタ判定（下4桁の先頭1文字で判定: 例 A0803034 -> "3"）
+    // 1. 番台フィルタ判定（下4桁の先頭1文字で判定）
     const shortCode = item.code.slice(-4);
     const matchesRange = (selectedRange === 'all') || shortCode.startsWith(selectedRange);
 
-    // 2. キーワード検索判定
+    // 2. キーワード検索判定（warning内の文字も検索対象に含める）
     const matchesQuery = !query || (
       item.code.toLowerCase().includes(query) ||
       item.category.toLowerCase().includes(query) ||
+      (item.severityLabel && item.severityLabel.toLowerCase().includes(query)) ||
       item.summary.toLowerCase().includes(query) ||
       item.cause.toLowerCase().includes(query) ||
-      item.solution.toLowerCase().includes(query)
+      item.solution.toLowerCase().includes(query) ||
+      (item.warning && item.warning.toLowerCase().includes(query))
     );
 
     return matchesRange && matchesQuery;
@@ -116,20 +109,26 @@ function renderResults(items) {
     return;
   }
 
+  const allowedColors = ['red', 'orange', 'yellow', 'teal', 'green'];
+
   resultsDiv.innerHTML = items.map(item => {
-    const sev = severityMap[item.severity] || { label: '重症度: 未設定', className: 'severity-medium' };
+    const color = allowedColors.includes(item.severityColor) ? item.severityColor : 'yellow';
+    const label = item.severityLabel || '重症度: 未設定';
+    const warningHtml = item.warning ? `<div class="warning-box">${item.warning}</div>` : '';
+
     return `
       <div class="card">
         <div class="card-header">
           <div class="code-group">
             <span class="code">${item.code}</span>
-            <span class="severity-badge ${sev.className}">${sev.label}</span>
+            <span class="severity-badge badge-${color}">${label}</span>
           </div>
           <span class="category">${item.category}</span>
         </div>
         <h2>${item.summary}</h2>
         <p><strong>【原因】</strong> ${item.cause}</p>
         <p><strong>【対処法】</strong> ${item.solution}</p>
+        ${warningHtml}
       </div>
     `;
   }).join('');
