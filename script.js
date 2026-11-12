@@ -30,9 +30,11 @@ function applyTheme(theme) {
 
 // --- 重症度ラベル定義 ---
 const severityMap = {
-  critical: { label: '重症度: 高（重度/BGA・内部）', className: 'severity-critical' },
-  high:     { label: '重症度: 中〜高（電源・起動系）', className: 'severity-high' },
-  medium:   { label: '重症度: 中（熱・外部要因）', className: 'severity-medium' }
+  critical:     { label: '重症度: 高（重度/BGA・内部）', className: 'severity-critical' },
+  high:         { label: '重症度: 中〜高（電源・起動系）', className: 'severity-high' },
+  medium:       { label: '重症度: 中（熱・外部要因）', className: 'severity-medium' },
+  'low-medium': { label: '重症度: 小〜中（電源回路・コンデンサ等）', className: 'severity-low-medium' },
+  low:          { label: '重症度: 小（コンデンサ交換等で復旧可）', className: 'severity-low' }
 };
 
 // --- DOM要素の取得 ---
