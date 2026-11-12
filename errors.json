@@ -2,22 +2,89 @@
   {
     "code": "A0801001",
     "category": "Power / CELL",
+    "severity": "high",
     "summary": "CELL BE 電源ライン異常（または周辺コンデンサ劣化）",
     "cause": "CELL周辺のNEC/TOKINプロードライザの容量抜け、またはVCORE電源回路の不具合。",
     "solution": "CELL側のNEC/TOKINをタンタルコンデンサ（470μF等）へ交換する。交換前にオシロスコープでリップル波形を確認推奨。"
   },
   {
+    "code": "A0801002",
+    "category": "Power / RSX",
+    "severity": "high",
+    "summary": "RSX 電源ライン異常（VDDC / NEC/TOKIN劣化）",
+    "cause": "RSX周辺のNEC/TOKINプロードライザの静電容量低下、またはRSX用VRM（電源回路）の電圧降下。負荷がかかった瞬間のYLODに多い。",
+    "solution": "RSX側のNEC/TOKINをタンタルコンデンサへ交換する。3034等が併発している場合はRSX自体のBGA不良も疑う。"
+  },
+  {
+    "code": "A0801004",
+    "category": "Power / AC-DC",
+    "severity": "medium",
+    "summary": "AC/DC 12V 電源ドロップ（電源ユニットまたはヒューズ異常）",
+    "cause": "電源ユニット（PSU）の12V出力低下、またはメイン基板上の12Vラインヒューズ断線・ショート。",
+    "solution": "正常な電源ユニット（APS-226/231等）と交換して切り分ける。PSUが正常な場合は基板上のヒューズとMOSFETの導通を確認。"
+  },
+  {
+    "code": "A0801200",
+    "category": "Thermal / CELL",
+    "severity": "medium",
+    "summary": "CELL BE オーバーヒート（熱暴走シャットダウン）",
+    "cause": "CELLのダイとIHS（ヒートスプレッダ）間のグリス乾燥・硬化、または冷却ファンの回転不良。",
+    "solution": "CELLの殻割り（Delid）を行い、ダイ表面の古いグリスを除去して新しいグリスへ塗り替える。ファンコネクタの断線も確認。"
+  },
+  {
+    "code": "A0801201",
+    "category": "Thermal / RSX",
+    "severity": "medium",
+    "summary": "RSX オーバーヒート（熱暴走シャットダウン）",
+    "cause": "RSXのIHS内部グリス劣化、またはヒートシンクの密着不良。",
+    "solution": "RSXのIHSを取り外してグリスを塗り替える。40nm RSX換装機の場合はシムや基板反りによるヒートシンクの浮きも点検する。"
+  },
+  {
+    "code": "A08014FF",
+    "category": "System / Checkstop",
+    "severity": "critical",
+    "summary": "システムチェックストップ（汎用致命的エラー）",
+    "cause": "CELLの内部チェックストップ、メモリ（XDR DRAM）異常、またはBGAの断線など複数の要因で発生する汎用エラー。",
+    "solution": "単独では原因特定が難しいため、Sysconログの直前・直後に記録されている別のエラーコード（1601、1701、3034等）と合わせて切り分ける。"
+  },
+  {
     "code": "A0801601",
     "category": "CELL / Livelock",
-    "summary": "CELL Livelock（ハングアップ）",
-    "cause": "CELLの通信タイムアウト、またはRSXとのインターフェース異常。40nm換装機などでも発生しうる。",
-    "solution": "Sysconログの前後エラーを確認。NANDダンプの整合性チェック、またはCELL/RSX周辺のハンダクラック・抵抗値を点検する。"
+    "severity": "critical",
+    "summary": "CELL Livelock（バス通信ハングアップ）",
+    "cause": "CELLの通信タイムアウト、またはRSXとのFlexIOインターフェース異常。40nm換装機やNAND/NORデータ不整合でも発生しうる。",
+    "solution": "Sysconログの前後エラーを確認。NAND/NORダンプの整合性チェック、40nm換装機の場合はSysconパッチの適用状況やCELL/RSX周辺の抵抗値を点検する。"
+  },
+  {
+    "code": "A0801701",
+    "category": "CELL / BE Attention",
+    "severity": "critical",
+    "summary": "CELL BE Attention（内部例外・システム停止）",
+    "cause": "CELL内部で回復不能な例外が発生。1601（Livelock）とセットで記録されることが多く、CELL自体の損傷やBGAクラック、電源ノイズが原因。",
+    "solution": "1601と同様に前後ログおよび電源リップルを確認する。CELLのBGAリボールまたは基板交換が必要になるケースが多い。"
+  },
+  {
+    "code": "A0803003",
+    "category": "Power / Standby-Init",
+    "severity": "high",
+    "summary": "起動シーケンス電源異常（CELL / RSX 初期電圧立ち上がり不良）",
+    "cause": "電源投入直後のCELLまたはRSXのコア電圧（VCORE / VDDC）が規定値まで立ち上がらない。ヒューズ断線やVRMコントローラICの故障。",
+    "solution": "基板上の表面実装ヒューズ（F6001等）の導通確認と、CELL/RSX電源ラインの対GND抵抗値（ショート有無）を測定する。"
+  },
+  {
+    "code": "A0803004",
+    "category": "Power / RSX-Init",
+    "severity": "high",
+    "summary": "RSX 電源シーケンス異常（VDDC / 周辺レギュレータ不良）",
+    "cause": "起動シーケンス中のRSX電源系統（VDDCまたはPLL/IO電源）の異常、またはRSX周辺のタンタル・セラミックコンデンサのショート。",
+    "solution": "RSX周辺の電源レギュレータ出力電圧とヒューズを確認。40nm換装後の場合は、換装時に変更した抵抗・コンデンサのハンダ不良を点検する。"
   },
   {
     "code": "A0803034",
     "category": "RSX / BGA",
+    "severity": "critical",
     "summary": "RSXとCELL間の通信エラー（FlexIO / BGA不良）",
-    "cause": "90nm RSXのバンプ劣化（いわゆるYLODの主因）、またはBGAハンダクラック。",
-    "solution": "40nmまたは65nm RSXへの換装（Frankenstein MOD）を検討する。リフローは一時的な延命にしかならない。"
+    "cause": "90nm RSXのアンダーフィル・バンプ劣化（いわゆるYLODの主因）、またはRSX/CELLのBGAハンダクラック。",
+    "solution": "40nmまたは65nm RSXへの換装（Frankenstein MOD）を行う。ヒートガン等によるリフローは一時的な延命にしかならない。"
   }
 ]
