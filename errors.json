@@ -2,18 +2,18 @@
   {
     "code": "A0801001",
     "category": "Power / CELL",
-    "severity": "high",
+    "severity": "low",
     "summary": "CELL BE 電源ライン異常（または周辺コンデンサ劣化）",
     "cause": "CELL周辺のNEC/TOKINプロードライザの容量抜け、またはVCORE電源回路の不具合。",
-    "solution": "CELL側のNEC/TOKINをタンタルコンデンサ（470μF等）へ交換する。交換前にオシロスコープでリップル波形を確認推奨。"
+    "solution": "CELL側のNEC/TOKINをタンタルコンデンサ（470μF等）へ交換・追加する。交換前にオシロスコープでリップル波形を確認推奨。"
   },
   {
     "code": "A0801002",
     "category": "Power / RSX",
-    "severity": "high",
+    "severity": "low",
     "summary": "RSX 電源ライン異常（VDDC / NEC/TOKIN劣化）",
     "cause": "RSX周辺のNEC/TOKINプロードライザの静電容量低下、またはRSX用VRM（電源回路）の電圧降下。負荷がかかった瞬間のYLODに多い。",
-    "solution": "RSX側のNEC/TOKINをタンタルコンデンサへ交換する。3034等が併発している場合はRSX自体のBGA不良も疑う。"
+    "solution": "RSX側のNEC/TOKINをタンタルコンデンサへ交換・追加する。3034等が併発している場合はRSX自体のBGA不良も疑う。"
   },
   {
     "code": "A0801004",
@@ -66,18 +66,18 @@
   {
     "code": "A0803003",
     "category": "Power / Standby-Init",
-    "severity": "high",
+    "severity": "low-medium",
     "summary": "起動シーケンス電源異常（CELL / RSX 初期電圧立ち上がり不良）",
-    "cause": "電源投入直後のCELLまたはRSXのコア電圧（VCORE / VDDC）が規定値まで立ち上がらない。ヒューズ断線やVRMコントローラICの故障。",
-    "solution": "基板上の表面実装ヒューズ（F6001等）の導通確認と、CELL/RSX電源ラインの対GND抵抗値（ショート有無）を測定する。"
+    "cause": "電源投入直後のCELLまたはRSXのコア電圧（VCORE / VDDC）が規定値まで立ち上がらない。コンデンサ劣化、ヒューズ断線、またはVRMコントローラICの故障。",
+    "solution": "周辺のコンデンサ交換、基板上の表面実装ヒューズ（F6001等）の導通確認、およびCELL/RSX電源ラインの対GND抵抗値（ショート有無）を測定する。"
   },
   {
     "code": "A0803004",
     "category": "Power / RSX-Init",
-    "severity": "high",
+    "severity": "low-medium",
     "summary": "RSX 電源シーケンス異常（VDDC / 周辺レギュレータ不良）",
-    "cause": "起動シーケンス中のRSX電源系統（VDDCまたはPLL/IO電源）の異常、またはRSX周辺のタンタル・セラミックコンデンサのショート。",
-    "solution": "RSX周辺の電源レギュレータ出力電圧とヒューズを確認。40nm換装後の場合は、換装時に変更した抵抗・コンデンサのハンダ不良を点検する。"
+    "cause": "起動シーケンス中のRSX電源系統（VDDCまたはPLL/IO電源）の異常、またはRSX周辺のコンデンサ劣化・ショート。",
+    "solution": "RSX周辺のコンデンサ交換・追加、電源レギュレータ出力電圧とヒューズを確認。40nm換装後の場合は、換装時に変更した抵抗・コンデンサのハンダ不良を点検する。"
   },
   {
     "code": "A0803034",
