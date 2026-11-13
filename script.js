@@ -1,6 +1,6 @@
 let errorData = [];
-let selectedRanges = new Set(); // 空のときは「すべて」扱い
-let selectedTags = new Set();   // 空のときは「すべて」扱い
+let selectedRanges = new Set();
+let selectedTags = new Set();
 
 // --- テーマ切替処理 ---
 const themeToggle = document.getElementById('themeToggle');
@@ -33,9 +33,7 @@ function applyTheme(theme) {
 function normalizeText(str) {
   if (!str) return '';
   return str
-    // 全角英数字・記号（！〜～）を半角に変換
     .replace(/[！-～]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
-    // 全角スペースを半角スペースに
     .replace(/ /g, ' ')
     .toLowerCase();
 }
@@ -48,12 +46,26 @@ const tagFilterBtns = document.querySelectorAll('#tagFilterBar .filter-btn');
 const resultsDiv = document.getElementById('results');
 const resultCount = document.getElementById('resultCount');
 
-// JSONデータの読み込み
-fetch('errors.json')
-  .then(response => response.json())
+// JSONデータの読み込み（キャッシュ無効化 ＋ エラー画面表示付き）
+fetch('errors.json', { cache: 'no-store' })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTPエラー (${response.status}): errors.json が見つかりません`);
+    }
+    return response.json();
+  })
   .then(data => {
     errorData = data;
     updateView();
+  })
+  .catch(err => {
+    resultCount.textContent = '読み込みエラー';
+    resultsDiv.innerHTML = `
+      <div class="warning-box">
+        <strong>データの読み込みに失敗しました（errors.json の書式ミスの可能性があります）</strong><br>
+        詳細: ${err.message}
+      </div>
+    `;
   });
 
 // 検索窓の入力イベント
@@ -94,7 +106,6 @@ function setupMultiFilter(buttons, attrName, selectedSet) {
         }
       }
 
-      // ボタンのactive見た目を更新
       buttons.forEach(b => {
         const bVal = b.getAttribute(attrName);
         if (bVal === 'all') {
@@ -130,7 +141,6 @@ function matchesTagFilter(item, fullTextNormalized) {
 
 // 絞り込みと描画の統合処理
 function updateView() {
-  // カンマ（半角, 全角， 読点、）で分割し、各キーワードを正規化
   const rawInput = searchInput.value;
   const terms = rawInput
     .split(/[,，、]+/)
@@ -138,14 +148,12 @@ function updateView() {
     .filter(t => t.length > 0);
 
   const filtered = errorData.filter(item => {
-    // 1. 番台フィルタ判定（複数選択時はいずれかに一致）
     const shortCode = item.code.slice(-4);
     const matchesRange = (selectedRanges.size === 0) ||
       Array.from(selectedRanges).some(r => shortCode.startsWith(r));
 
     if (!matchesRange) return false;
 
-    // 検索対象テキストを結合して正規化
     const searchableText = normalizeText([
       item.code,
       item.category,
@@ -156,10 +164,8 @@ function updateView() {
       item.warning
     ].filter(Boolean).join(' '));
 
-    // 2. 部位・部品タグフィルタ判定
     if (!matchesTagFilter(item, searchableText)) return false;
 
-    // 3. カンマ区切りキーワード検索判定（いずれかのキーワードを含む）
     if (terms.length === 0) return true;
     return terms.some(term => searchableText.includes(term));
   });
