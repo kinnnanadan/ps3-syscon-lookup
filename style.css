@@ -100,7 +100,7 @@ h1 {
 
 /* 検索ボックスとクリアボタン */
 .search-box {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .search-input-wrapper {
@@ -152,19 +152,39 @@ h1 {
   display: none;
 }
 
-/* 番台フィルタバー */
+/* フィルタセクション（複数行対応） */
+.filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filter-label {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: var(--text-muted);
+  min-width: 44px;
+}
+
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
 }
 
 .filter-btn {
   background-color: var(--btn-bg);
   color: var(--btn-text);
   border: 1px solid var(--border-color);
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -370,8 +390,13 @@ h1 {
     font-size: 0.8rem;
   }
 
+  .filter-label {
+    font-size: 0.8rem;
+    min-width: 38px;
+  }
+
   .filter-btn {
-    padding: 6px 10px;
+    padding: 5px 10px;
     font-size: 0.8rem;
   }
 
