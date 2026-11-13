@@ -63,7 +63,6 @@ const pageViews = document.querySelectorAll('.page-view');
 
 function switchView(viewName) {
   const targetView = document.getElementById(`view-${viewName}`);
-  // 存在しないビュー名が指定された場合は home に戻す
   const activeName = targetView ? viewName : 'home';
 
   pageViews.forEach(view => {
@@ -78,14 +77,12 @@ function switchView(viewName) {
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-// ハッシュURL（#home, #search など）の変化を監視
 function handleHashChange() {
   const hash = window.location.hash.replace('#', '');
   switchView(hash || 'home');
 }
 
 window.addEventListener('hashchange', handleHashChange);
-// 初回読み込み時にも現在のURLハッシュを反映
 handleHashChange();
 
 // --- 全角英数字・記号を半角小文字へ正規化する関数 ---
@@ -255,6 +252,142 @@ function renderResults(items) {
         <p><strong>【対処法】</strong> ${item.solution}</p>
         ${warningHtml}
       </div>
+    `;
+  }).join('');
+}
+
+// ==========================================
+// ファン制御値計算ツール（% ⇄ 16進数）
+// ==========================================
+const pctInput = document.getElementById('pctInput');
+const hexInput = document.getElementById('hexInput');
+const hexOutWithPrefix = document.getElementById('hexOutWithPrefix');
+const hexOutPlain = document.getElementById('hexOutPlain');
+const decOutFromPct = document.getElementById('decOutFromPct');
+const pctOutExact = document.getElementById('pctOutExact');
+const pctOutRound = document.getElementById('pctOutRound');
+const decOutFromHex = document.getElementById('decOutFromHex');
+
+// 1. % -> 16進数 変換
+function convertPctToHex() {
+  const normalized = normalizeText(pctInput.value).replace(/%/g, '').trim();
+  const val = parseFloat(normalized);
+
+  if (normalized === '' || Number.isNaN(val) || val < 0 || val > 100) {
+    hexOutWithPrefix.textContent = '0〜100の数値を入力';
+    hexOutWithPrefix.classList.add('error-text');
+    hexOutPlain.textContent = '-';
+    decOutFromPct.textContent = '-';
+    return;
+  }
+
+  hexOutWithPrefix.classList.remove('error-text');
+  const dec = Math.round((val / 100) * 255);
+  const hexPlain = dec.toString(16).toUpperCase().padStart(2, '0');
+
+  hexOutWithPrefix.textContent = `0x${hexPlain}`;
+  hexOutPlain.textContent = hexPlain;
+  decOutFromPct.textContent = `${dec}`;
+}
+
+// 2. 16進数 -> % 変換
+function convertHexToPct() {
+  let normalized = normalizeText(hexInput.value).trim();
+  if (normalized.startsWith('0x')) {
+    normalized = normalized.slice(2);
+  }
+
+  if (normalized === '' || !/^[0-9a-f]+$/.test(normalized)) {
+    pctOutExact.textContent = '00〜FFの16進数を入力';
+    pctOutExact.classList.add('error-text');
+    pctOutRound.textContent = '-';
+    decOutFromHex.textContent = '-';
+    return;
+  }
+
+  const dec = parseInt(normalized, 16);
+  if (dec < 0 || dec > 255) {
+    pctOutExact.textContent = '0x00〜0xFFの範囲で入力';
+    pctOutExact.classList.add('error-text');
+    pctOutRound.textContent = '-';
+    decOutFromHex.textContent = '-';
+    return;
+  }
+
+  pctOutExact.classList.remove('error-text');
+  const exactPct = (dec / 255) * 100;
+  const roundPct = Math.round(exactPct);
+
+  pctOutExact.textContent = `${exactPct.toFixed(1)}%`;
+  pctOutRound.textContent = `${roundPct}%`;
+  decOutFromHex.textContent = `${dec}`;
+}
+
+if (pctInput && hexInput) {
+  pctInput.addEventListener('input', convertPctToHex);
+  hexInput.addEventListener('input', convertHexToPct);
+
+  // プリセットボタンの連動
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.hasAttribute('data-pct')) {
+        pctInput.value = btn.getAttribute('data-pct');
+        convertPctToHex();
+      } else if (btn.hasAttribute('data-hex')) {
+        hexInput.value = btn.getAttribute('data-hex');
+        convertHexToPct();
+      }
+    });
+  });
+
+  // コピーボタンの処理
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-copy-target');
+      const targetEl = document.getElementById(targetId);
+      if (!targetEl || targetEl.classList.contains('error-text')) return;
+
+      navigator.clipboard.writeText(targetEl.textContent).then(() => {
+        const originalText = btn.textContent;
+        btn.textContent = 'コピー完了!';
+        setTimeout(() => {
+          btn.textContent = originalText;
+        }, 1200);
+      });
+    });
+  });
+
+  // 初期計算を実行
+  convertPctToHex();
+  convertHexToPct();
+}
+
+// 3. 早見表の自動生成
+const fanRefTableBody = document.getElementById('fanRefTableBody');
+if (fanRefTableBody) {
+  const presets = [
+    { pct: 20, note: '最低回転目安（SYSCON標準アイドル付近）' },
+    { pct: 25, note: '静音重視' },
+    { pct: 30, note: '標準冷却目安' },
+    { pct: 35, note: 'CFW / 冷却強化目安' },
+    { pct: 40, note: '高負荷・夏場向け' },
+    { pct: 50, note: '半分出力（かなり風切り音あり）' },
+    { pct: 60, note: '強力冷却' },
+    { pct: 80, note: '最大付近テスト用' },
+    { pct: 100, note: 'フル回転（最大出力）' }
+  ];
+
+  fanRefTableBody.innerHTML = presets.map(row => {
+    const dec = Math.round((row.pct / 100) * 255);
+    const hex = dec.toString(16).toUpperCase().padStart(2, '0');
+    return `
+      <tr>
+        <td class="mono">${row.pct}%</td>
+        <td class="mono">0x${hex}</td>
+        <td class="mono">${hex}</td>
+        <td class="mono">${dec}</td>
+        <td>${row.note}</td>
+      </tr>
     `;
   }).join('');
 }
