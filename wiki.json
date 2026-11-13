@@ -1,0 +1,90 @@
+[
+  {
+    "id": "syscon-uart",
+    "title": "Syscon 診断モード・UART接続と基本コマンド",
+    "sourceTitle": "PS3 Developer Wiki - Syscon",
+    "sourceUrl": "https://www.psdevwiki.com/ps3/Syscon",
+    "lastUpdated": "2026-11-13",
+    "licenseNote": "この記事は PS3 Developer Wiki の技術情報をベースに日本語へ翻訳・再構成したものです（GFDL 1.2 準拠）。",
+    "lead": "PS3のシステムコントローラ（Syscon）にUSB-TTL（UART）アダプタを接続し、エラーログの読み出しやファン制御テストを行うためのリファレンスです。",
+    "sections": [
+      {
+        "heading": "1. UART接続の基本仕様（シリアル通信設定）",
+        "paragraphs": [
+          "Sysconとの通信には 3.3V ロジックレベルの USB-TTL シリアル変換アダプタ（FT232RL や CP2102 など）を使用します。5V電圧を印加するとSysconが破損するため必ず 3.3V を使用してください。",
+          "基板上のハンダ付けポイントは、大きく分けて「Mullion（初期型：COK-001/002〜DIA-002等）」と「Sherwood（後期Slim/SuperSlim：DYN-001以降）」で異なり、Mullion基板では DIAG ピンを GND に落とす必要があります。"
+        ],
+        "table": {
+          "headers": ["設定項目", "値", "備考"],
+          "rows": [
+            ["ボーレート (Baud Rate)", "57600", "Mullion / Sherwood 共通"],
+            ["データビット", "8 bit", "標準設定"],
+            ["パリティ", "None (なし)", "標準設定"],
+            ["ストップビット", "1 bit", "標準設定"],
+            ["フロー制御", "None (なし)", "XON/XOFF や RTS/CTS はオフ"]
+          ]
+        }
+      },
+      {
+        "heading": "2. 代表的な Syscon 診断コマンド一覧",
+        "paragraphs": [
+          "Mullion基板（初期型）の内部診断モードでよく使用する基本コマンドです。認証（AUTH）を通過した後に実行します。"
+        ],
+        "table": {
+          "headers": ["コマンド", "機能・用途", "補足"],
+          "rows": [
+            ["errlog", "エラーログ履歴の表示", "最新から最大32件のエラーコードと発生時刻を出力"],
+            ["clearerrlog", "エラーログの消去", "修理後の動作確認前に履歴をリセットする際に使用"],
+            ["bringup", "起動シーケンスの実行", "電源投入テストを行い、どの段階で停止するか確認"],
+            ["shutdown", "システムのシャットダウン", "bringup 後の電源オフに使用"],
+            ["tmp get 0 / tmp get 1", "温度センサー値の取得", "0 が CELL、1 が RSX の現在温度を取得"],
+            ["fantbl get 0", "ファン制御テーブルの確認", "現在の温度・PWM設定値テーブルを読み出し"]
+          ]
+        },
+        "warning": "eepcsum や w（EEPROM書き込み）コマンドはチェックサム不整合を起こすと起動不能（ブリック）になります。読み出し系コマンド以外を実行する前は必ずダンプを取得してください。"
+      }
+    ]
+  },
+  {
+    "id": "board-revisions",
+    "title": "基板リビジョン別・RSXプロセスとプロードライザ一覧",
+    "sourceTitle": "PS3 Developer Wiki - Motherboard Revisions",
+    "sourceUrl": "https://www.psdevwiki.com/ps3/Motherboard_Revisions",
+    "lastUpdated": "2026-11-13",
+    "licenseNote": "この記事は PS3 Developer Wiki の基板データベースをもとに日本語化したリファレンスです（GFDL 1.2 準拠）。",
+    "lead": "本体型番（CECH-〇〇）ごとのメイン基板リビジョン、搭載RSXの製造プロセス、およびNEC/TOKINプロードライザの搭載個数一覧です。",
+    "sections": [
+      {
+        "heading": "1. 初期型（Fat）基板リビジョン一覧",
+        "paragraphs": [
+          "COK-001 および COK-002 は PS2 ハードウェア互換機能（EE+GS または GS）を搭載したモデルで、90nm RSX のバンプ劣化（3034）と NEC/TOKIN の容量抜け（1001/1002）の双方が発生しやすい世代です。"
+        ],
+        "table": {
+          "headers": ["基板名", "主な型番", "CELL / RSX", "NEC/TOKIN搭載数", "Syscon種別"],
+          "rows": [
+            ["COK-001", "CECHA / CECHB", "90nm / 90nm", "計8個 (CELL表2裏2 / RSX表2裏2)", "Mullion"],
+            ["COK-002", "CECHC / CECHE", "90nm / 90nm", "計8個 (CELL表2裏2 / RSX表2裏2)", "Mullion"],
+            ["SEM-001", "CECHG", "65nm / 90nm", "計8個 (CELL表2裏2 / RSX表2裏2)", "Mullion"],
+            ["DIA-001", "CECHH", "65nm / 90nm", "計8個 (CELL表2裏2 / RSX表2裏2)", "Mullion"],
+            ["DIA-002", "CECHJ / CECHK / CECHL", "65nm / 65nm", "計8個 (CELL表2裏2 / RSX表2裏2)", "Mullion"],
+            ["VER-001", "CECHM / CECHP / CECHQ", "65nm / 65nm", "計8個 (CELL表2裏2 / RSX表2裏2)", "Mullion"]
+          ]
+        }
+      },
+      {
+        "heading": "2. 薄型（Slim）初期〜中期基板",
+        "paragraphs": [
+          "DYN-001 は 45nm CELL と 65nm RSX を搭載しており、引き続き NEC/TOKIN プロードライザが採用されています。SUR-001 以降は RSX が 40nm へ微細化され、プロードライザもタンタルコンデンサへ段階的に置き換わっています。"
+        ],
+        "table": {
+          "headers": ["基板名", "主な型番", "CELL / RSX", "NEC/TOKIN搭載数", "Syscon種別"],
+          "rows": [
+            ["DYN-001", "CECH-2000A / B", "45nm / 65nm", "計6個 (CELL表1裏2 / RSX表1裏2)", "Sherwood"],
+            ["SUR-001", "CECH-2100A / B", "45nm / 40nm", "CELL側のみ搭載（RSX側はタンタル化）", "Sherwood"],
+            ["JTP-001 / JSD-001", "CECH-2500A / B", "45nm / 40nm", "廃止（すべてタンタル/積層セラミック）", "Sherwood"]
+          ]
+        }
+      }
+    ]
+  }
+]
