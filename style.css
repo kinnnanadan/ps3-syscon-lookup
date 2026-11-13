@@ -1335,3 +1335,25 @@ a.tool-link-card:hover {
     font-size: 0.8rem;
   }
 }
+/* ==========================================
+   α版・製作途中のお知らせボックス
+   ========================================== */
+.alpha-notice-box {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #2563eb;
+  color: #1e3a8a;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  overflow-wrap: break-word;
+}
+
+[data-theme="dark"] .alpha-notice-box {
+  background-color: rgba(37, 99, 235, 0.16);
+  border-color: rgba(96, 165, 250, 0.35);
+  border-left-color: #3b82f6;
+  color: #dbeafe;
+}
