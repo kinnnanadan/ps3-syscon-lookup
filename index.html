@@ -3,69 +3,172 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PS3 Syscon エラーコード検索</title>
+  <title>PS3 修理・解析データベース</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <header class="site-header">
-      <div class="header-top">
-        <h1>PS3 Syscon エラーコード検索</h1>
-        <button id="themeToggle" class="theme-btn" aria-label="テーマ切替">🌙 ダーク</button>
-      </div>
-      <p class="site-description">
-        PlayStation 3 の Syscon エラーログ（UART出力など）から、故障の原因と修理・切り分けの対処方法を検索できるデータベースです。初めて修理に挑戦する方にも分かりやすいよう整理しています。カンマ区切り（例: 1001,1002）での複数検索や全角数字での入力にも対応しています。
-      </p>
-      <div class="disclaimer-box" role="note">
-        <strong>【免責事項・ご利用上の注意】</strong><br>
-        本サイトは修理作業の参考情報として公開していますが、記載内容の正確性・完全性を保証するものではありません。分解・ハンダ付け・基板修理などの作業は<strong>すべて自己責任</strong>にて行ってください。本サイトの情報を参考にして発生した機器の破損・データ消失・感電・事故等のいかなる損害についても、制作者は一切の責任を負いかねます。
-      </div>
-    </header>
+  <!-- スマホ用トップバー -->
+  <header class="mobile-header">
+    <button id="menuToggle" class="menu-btn" aria-label="メニューを開く">☰</button>
+    <span class="mobile-title">PS3 修理・解析DB</span>
+    <button id="themeToggleMobile" class="theme-btn-mini" aria-label="テーマ切替">🌙</button>
+  </header>
 
-    <main>
-      <div class="search-box">
-        <div class="search-input-wrapper">
-          <input type="text" id="searchInput" placeholder="コードやキーワードを入力 (例: 1001,1002 / ３０３４ / CELL)">
-          <button id="clearBtn" class="clear-btn hidden" aria-label="検索をクリア" title="クリア">×</button>
-        </div>
+  <!-- スマホでメニューを開いた時の背景暗転オーバーレイ -->
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+  <div class="app-layout">
+    <!-- サイドメニュー -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="site-logo">PS3 修理・解析DB</div>
+        <button id="menuClose" class="menu-close-btn" aria-label="メニューを閉じる">×</button>
       </div>
 
-      <div class="filter-section">
-        <div class="filter-group">
-          <span class="filter-label">番台：</span>
-          <div class="filter-bar" id="rangeFilterBar" role="group" aria-label="エラーコード番台絞り込み">
-            <button class="filter-btn active" data-range="all">すべて</button>
-            <button class="filter-btn" data-range="1">1000番台</button>
-            <button class="filter-btn" data-range="2">2000番台</button>
-            <button class="filter-btn" data-range="3">3000番台</button>
-            <button class="filter-btn" data-range="4">4000番台</button>
+      <nav class="sidebar-nav" aria-label="メインメニュー">
+        <div class="nav-section-title">メイン</div>
+        <a href="#home" class="nav-item active" data-view="home">
+          <span class="nav-icon">🏠</span> TOP・はじめに
+        </a>
+
+        <div class="nav-section-title">解析・修理ツール</div>
+        <a href="#search" class="nav-item" data-view="search">
+          <span class="nav-icon">🔍</span> Syscon エラー検索
+        </a>
+
+        <!-- ▼ 新しいメニューを追加する時はここをコピーして data-view と href を変更 ▼ -->
+        <!--
+        <a href="#fan-calc" class="nav-item" data-view="fan-calc">
+          <span class="nav-icon">🌀</span> ファン制御値計算
+        </a>
+        -->
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="themeToggle" class="theme-btn" aria-label="テーマ切替">🌙 ダークモード</button>
+      </div>
+    </aside>
+
+    <!-- メインコンテンツ領域 -->
+    <main class="main-content">
+      <div class="content-inner">
+
+        <!-- ==========================================
+             画面1: TOPページ (#home)
+             ========================================== -->
+        <section id="view-home" class="page-view active">
+          <div class="hero-card">
+            <h1>PS3 修理・解析データベース</h1>
+            <p class="lead-text">
+              PlayStation 3 のハードウェア修理・メンテナンス・ログ解析に役立つ情報をまとめた個人用兼初心者向けリファレンスサイトです。
+            </p>
           </div>
-        </div>
 
-        <div class="filter-group">
-          <span class="filter-label">関連：</span>
-          <div class="filter-bar" id="tagFilterBar" role="group" aria-label="部位・部品絞り込み">
-            <button class="filter-btn active" data-tag="all">すべて</button>
-            <button class="filter-btn" data-tag="cell">CELL</button>
-            <button class="filter-btn" data-tag="rsx">RSX</button>
-            <button class="filter-btn" data-tag="capacitor">コンデンサ</button>
+          <div class="disclaimer-box" role="note">
+            <strong>【重要・免責事項】必ずお読みください</strong><br>
+            本サイトは修理作業や故障切り分けの参考情報として公開していますが、記載内容の正確性・完全性を保証するものではありません。<br>
+            分解・殻割り（Delid）・ハンダ付け・基板改造などの作業は<strong>すべて自己責任</strong>にて行ってください。本サイトの情報を参考にして発生した機器の破損・データ消失・感電・火災等のいかなる損害についても、制作者は一切の責任を負いかねます。
           </div>
-        </div>
-      </div>
 
-      <div class="result-meta">
-        <span id="resultCount"></span>
-      </div>
+          <div class="readme-card">
+            <h2>📖 このサイトについて（README）</h2>
+            <p>
+              管理人自身のPS3修理・検証の備忘録をベースに、これから修理に挑戦する初心者の方でも「どのエラーが何を表していて、どこから手を付けるべきか」を直感的に把握できるよう整理しています。
+            </p>
 
-      <div id="results"></div>
+            <h3>収録ツール一覧</h3>
+            <div class="tool-grid">
+              <a href="#search" class="tool-link-card" data-view="search">
+                <div class="tool-card-title">🔍 Syscon エラーコード検索</div>
+                <p>UART等で取得したエラーコード（1001, 3034など）から原因・対処法・作業時の注意点を検索できます。カンマ区切りの複数検索や番台・部品別の絞り込みに対応。</p>
+                <span class="tool-card-action">ツールを開く →</span>
+              </a>
+
+              <!-- 今後ツールを増やしたらここにも紹介カードを追加できます -->
+              <div class="tool-link-card coming-soon">
+                <div class="tool-card-title">🛠️ 今後の追加予定ツール</div>
+                <p>Syscon ファン制御（16進数）変換ツール、基板リビジョン別の確認ポイント、各種テストポイント資料などを順次追加予定です。</p>
+              </div>
+            </div>
+
+            <h3>更新履歴</h3>
+            <ul class="changelog-list">
+              <li><strong>2026-11-13:</strong> TOPページ（README・免責事項）とサイドメニューを追加し、複数ツールを格納できる構成へ刷新。</li>
+              <li><strong>2026-11-13:</strong> Sysconエラー検索にカンマ複数検索・全角対応・複数絞り込み・重要注意事項ボックスを実装。</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             画面2: Syscon エラーコード検索 (#search)
+             ========================================== -->
+        <section id="view-search" class="page-view">
+          <div class="page-header">
+            <h1>Syscon エラーコード検索</h1>
+            <p class="site-description">
+              エラーコード（下4桁のみでも可）や部品名で検索できます。カンマ区切り（例: <code>1001,1002</code>）での複数検索や全角数字での入力にも対応しています。
+            </p>
+          </div>
+
+          <div class="search-box">
+            <div class="search-input-wrapper">
+              <input type="text" id="searchInput" placeholder="コードやキーワードを入力 (例: 1001,1002 / ３０３４ / CELL)">
+              <button id="clearBtn" class="clear-btn hidden" aria-label="検索をクリア" title="クリア">×</button>
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <div class="filter-group">
+              <span class="filter-label">番台：</span>
+              <div class="filter-bar" id="rangeFilterBar" role="group" aria-label="エラーコード番台絞り込み">
+                <button class="filter-btn active" data-range="all">すべて</button>
+                <button class="filter-btn" data-range="1">1000番台</button>
+                <button class="filter-btn" data-range="2">2000番台</button>
+                <button class="filter-btn" data-range="3">3000番台</button>
+                <button class="filter-btn" data-range="4">4000番台</button>
+              </div>
+            </div>
+
+            <div class="filter-group">
+              <span class="filter-label">関連：</span>
+              <div class="filter-bar" id="tagFilterBar" role="group" aria-label="部位・部品絞り込み">
+                <button class="filter-btn active" data-tag="all">すべて</button>
+                <button class="filter-btn" data-tag="cell">CELL</button>
+                <button class="filter-btn" data-tag="rsx">RSX</button>
+                <button class="filter-btn" data-tag="capacitor">コンデンサ</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-meta">
+            <span id="resultCount"></span>
+          </div>
+
+          <div id="results"></div>
+        </section>
+
+        <!-- ▼ 新しい画面を追加する時はここをコピーして id="view-〇〇" を変更 ▼ -->
+        <!--
+        <section id="view-fan-calc" class="page-view">
+          <div class="page-header">
+            <h1>ファン制御値計算</h1>
+            <p class="site-description">ここにツールの説明文を書きます。</p>
+          </div>
+          <div class="readme-card">
+            <p>ここにツールの本体を作ります。</p>
+          </div>
+        </section>
+        -->
+
+        <footer class="site-footer">
+          <p>
+            参考資料: <a href="https://www.psdevwiki.com/ps3/" target="_blank" rel="noopener noreferrer">PS3 Developer Wiki</a>
+          </p>
+        </footer>
+      </div>
     </main>
-
-    <footer class="site-footer">
-      <p>
-        参考資料: <a href="https://www.psdevwiki.com/ps3/Syscon_Error_Codes" target="_blank" rel="noopener noreferrer">PS3 Developer Wiki - Syscon Error Codes</a>
-      </p>
-    </footer>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>
