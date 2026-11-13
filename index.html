@@ -30,6 +30,9 @@
         <a href="#home" class="nav-item active" data-view="home">
           <span class="nav-icon">🏠</span> TOP・はじめに
         </a>
+        <a href="#references" class="nav-item" data-view="references">
+          <span class="nav-icon">📚</span> 参考資料・ライセンス
+        </a>
 
         <div class="nav-section-title">解析・修理ツール</div>
         <a href="#search" class="nav-item" data-view="search">
@@ -89,15 +92,75 @@
 
             <h3>更新履歴</h3>
             <ul class="changelog-list">
+              <li><strong>2026-11-13:</strong> メインメニューに「📚 参考資料・ライセンス」ページを追加。</li>
               <li><strong>2026-11-13:</strong> 「🌀 ファン制御値計算（% ⇄ 16進数変換）」ツールを追加。</li>
               <li><strong>2026-11-13:</strong> TOPページ（README・免責事項）とサイドメニューを追加し、複数ツールを格納できる構成へ刷新。</li>
-              <li><strong>2026-11-13:</strong> Sysconエラー検索にカンマ複数検索・全角対応・複数絞り込み・重要注意事項ボックスを実装。</li>
             </ul>
           </div>
         </section>
 
         <!-- ==========================================
-             画面2: Syscon エラーコード検索 (#search)
+             画面2: 参考資料・ライセンス (#references)
+             ========================================== -->
+        <section id="view-references" class="page-view">
+          <div class="page-header">
+            <h1>📚 参考資料・ライセンスについて</h1>
+            <p class="site-description">
+              本サイトの制作・情報整理にあたり参照した一次情報およびライセンス表記です。
+            </p>
+          </div>
+
+          <div class="readme-card" style="margin-bottom: 16px;">
+            <h2>🔗 参考資料（一次情報・ドキュメント）</h2>
+            <p>
+              本サイトに掲載しているエラーコードの仕様、基板構造、Syscon関連の技術情報は、以下のコミュニティドキュメントおよび管理人自身の実機検証知見をもとに構成しています（今後、新たな資料を参照した場合は随時追記します）。
+            </p>
+            <ul class="changelog-list">
+              <li>
+                <strong>PS3 Developer Wiki（メインページ）</strong><br>
+                <a href="https://www.psdevwiki.com/ps3/" target="_blank" rel="noopener noreferrer" style="color: var(--link-color);">https://www.psdevwiki.com/ps3/</a>
+              </li>
+              <li>
+                <strong>PS3 Developer Wiki - Syscon Error Codes（エラーコード一覧）</strong><br>
+                <a href="https://www.psdevwiki.com/ps3/Syscon_Error_Codes" target="_blank" rel="noopener noreferrer" style="color: var(--link-color);">https://www.psdevwiki.com/ps3/Syscon_Error_Codes</a>
+              </li>
+              <li>
+                <strong>PS3 Developer Wiki - Thermal / Fan Control（熱制御・ファン制御関連）</strong><br>
+                <a href="https://www.psdevwiki.com/ps3/Thermal" target="_blank" rel="noopener noreferrer" style="color: var(--link-color);">https://www.psdevwiki.com/ps3/Thermal</a>
+              </li>
+            </ul>
+          </div>
+
+          <div class="readme-card">
+            <h2>⚖️ ライセンス・著作権について</h2>
+            <p>
+              本サイト内のエラー解説文・修理手順・注意事項のテキスト、および検索・計算ツールのソースコードは、技術仕様の調査と実機修理の経験をもとに管理人が独自に執筆・作成したものです。
+            </p>
+
+            <h3>参照元 Wiki のライセンス（GFDL 1.2）について</h3>
+            <p>
+              参考資料である <strong>PS3 Developer Wiki</strong> のコンテンツは、<strong>GNU Free Documentation License 1.2（GFDL 1.2）</strong> のもとで公開されています。
+            </p>
+            <ul class="changelog-list">
+              <li>
+                <strong>GNU Free Documentation License, Version 1.2（公式原文）:</strong><br>
+                <a href="https://www.gnu.org/licenses/old-licenses/fdl-1.2.html" target="_blank" rel="noopener noreferrer" style="color: var(--link-color);">https://www.gnu.org/licenses/old-licenses/fdl-1.2.html</a>
+              </li>
+              <li>
+                本サイトでは、同Wikiで公開されている技術的仕様（エラーコード番号・ハードウェア仕様等の事実情報）を参照しつつ、初心者にも分かりやすいよう独自の構成・日本語解説でデータベース化を行っています。
+              </li>
+              <li>
+                今後、同Wikiの文章の翻訳や図表等を直接引用・転載する箇所を追加する場合は、GFDL 1.2 の規定に従い該当箇所への出典明記およびライセンス継承条件を遵守します。
+              </li>
+              <li>
+                「PlayStation」「PS3」「CELL」「RSX」等の名称は、ソニー・インタラクティブエンタテインメントまたは各権利者の商標・登録商標です。本サイトは個人の技術研究・情報共有を目的とした非公式のファンサイトであり、メーカー各社とは一切関係ありません。
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             画面3: Syscon エラーコード検索 (#search)
              ========================================== -->
         <section id="view-search" class="page-view">
           <div class="page-header">
@@ -145,7 +208,7 @@
         </section>
 
         <!-- ==========================================
-             画面3: ファン制御値計算 (#fan-calc)
+             画面4: ファン制御値計算 (#fan-calc)
              ========================================== -->
         <section id="view-fan-calc" class="page-view">
           <div class="page-header">
@@ -256,7 +319,8 @@
 
         <footer class="site-footer">
           <p>
-            参考資料: <a href="https://www.psdevwiki.com/ps3/" target="_blank" rel="noopener noreferrer">PS3 Developer Wiki</a>
+            参考資料: <a href="https://www.psdevwiki.com/ps3/" target="_blank" rel="noopener noreferrer">PS3 Developer Wiki</a> /
+            <a href="#references">参考資料・ライセンス詳細</a>
           </p>
         </footer>
       </div>
