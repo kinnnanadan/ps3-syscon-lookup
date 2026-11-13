@@ -5,15 +5,13 @@
   "navboxes": [
     {
       "id": "console-info",
-      "title": "Console Information（本体モデル情報）",
-      "originalTitle": "Console Information",
+      "title": "コンソール情報",
       "groups": [
         {
-          "category": "Retail",
-          "categoryJa": "市販モデル",
+          "category": "市販モデル",
           "rows": [
             {
-              "label": "Fat (nand)",
+              "label": "厚型 (NAND)",
               "items": [
                 { "name": "CECHAxx", "wikiSlug": "CECHAxx", "note": "初期型・PS2ハードウェア互換 (EE+GS) / COK-001" },
                 { "name": "CECHBxx", "wikiSlug": "CECHBxx", "note": "初期型20GB・Wi-Fi非搭載 / COK-001" },
@@ -23,7 +21,7 @@
               ]
             },
             {
-              "label": "Fat (nor)",
+              "label": "厚型 (NOR)",
               "items": [
                 { "name": "CECHHxx", "wikiSlug": "CECHHxx", "note": "NORフラッシュ移行・90nm RSX / DIA-001" },
                 { "name": "CECHJxx", "wikiSlug": "CECHJxx", "note": "65nm RSX移行モデル / DIA-002" },
@@ -35,7 +33,7 @@
               ]
             },
             {
-              "label": "Slim (nor)",
+              "label": "薄型 (NOR)",
               "items": [
                 { "name": "CECH-20xx", "wikiSlug": "CECH-20xx", "note": "初代Slim・65nm RSX / DYN-001" },
                 { "name": "CECH-21xx", "wikiSlug": "CECH-21xx", "note": "40nm RSX移行モデル / SUR-001" },
@@ -44,7 +42,7 @@
               ]
             },
             {
-              "label": "Super Slim (nor/eMMC)",
+              "label": "超薄型 (NOR/eMMC)",
               "items": [
                 { "name": "CECH-40xx", "wikiSlug": "CECH-40xx", "note": "初代Super Slim / MSX-001, MPX-001" },
                 { "name": "CECH-42xx", "wikiSlug": "CECH-42xx", "note": "中期Super Slim / NPX-001, PPX-001, PQX-001" },
@@ -57,15 +55,14 @@
     },
     {
       "id": "console-components",
-      "title": "Console Components（本体構成部品）",
-      "originalTitle": "Console Components",
+      "title": "コンソール構成部品",
       "groups": [
         {
-          "category": "Motherboards",
-          "subCategory": "Retail",
+          "category": "マザーボード",
+          "subCategory": "市販モデル",
           "rows": [
             {
-              "label": "Fat (nand)",
+              "label": "厚型 (NAND)",
               "items": [
                 { "name": "COK-001", "wikiSlug": "COK-001", "note": "90nm CELL + 90nm RSX + EE+GS / NEC/TOKIN 8個" },
                 { "name": "COK-002", "wikiSlug": "COK-002", "note": "90nm CELL + 90nm RSX + GS / NEC/TOKIN 8個" },
@@ -74,7 +71,7 @@
               ]
             },
             {
-              "label": "Fat (nor)",
+              "label": "厚型 (NOR)",
               "items": [
                 { "name": "DIA-001", "wikiSlug": "DIA-001", "note": "65nm CELL + 90nm RSX / NEC/TOKIN 8個" },
                 { "name": "DIA-002", "wikiSlug": "DIA-002", "note": "65nm CELL + 65nm RSX / NEC/TOKIN 8個" },
@@ -82,7 +79,7 @@
               ]
             },
             {
-              "label": "Slim (nor)",
+              "label": "薄型 (NOR)",
               "items": [
                 { "name": "DYN-001", "wikiSlug": "DYN-001", "note": "45nm CELL + 65nm RSX / NEC/TOKIN 6個" },
                 { "name": "SUR-001", "wikiSlug": "SUR-001", "note": "45nm CELL + 40nm RSX / CELL側のみNEC/TOKIN" },
@@ -92,7 +89,7 @@
               ]
             },
             {
-              "label": "Super Slim (nor/eMMC)",
+              "label": "超薄型 (NOR/eMMC)",
               "items": [
                 { "name": "MSX-001", "wikiSlug": "MSX-001" },
                 { "name": "MPX-001", "wikiSlug": "MPX-001" },
@@ -106,10 +103,10 @@
           ]
         },
         {
-          "category": "Bluray Drive",
+          "category": "Blu-rayドライブ",
           "rows": [
             {
-              "label": "Drive",
+              "label": "ドライブ本体",
               "items": [
                 { "name": "BD-400", "wikiSlug": "BD-400" },
                 { "name": "BD-410", "wikiSlug": "BD-410" },
@@ -119,7 +116,7 @@
               ]
             },
             {
-              "label": "Laser",
+              "label": "レーザーピックアップ",
               "items": [
                 { "name": "KES-400A", "wikiSlug": "KES-400A", "note": "初期シングルレンズピックアップ" },
                 { "name": "KES-410A", "wikiSlug": "KES-410A", "note": "2レンズピックアップ（BD/DVD分離）" },
@@ -134,7 +131,7 @@
               ]
             },
             {
-              "label": "Slide",
+              "label": "スライドメカ",
               "items": [
                 { "name": "KEM-400AAA", "wikiSlug": "KEM-400AAA" },
                 { "name": "KEM-410ACA", "wikiSlug": "KEM-410ACA" },
@@ -148,7 +145,7 @@
               ]
             },
             {
-              "label": "BD Daughterboards",
+              "label": "BDドーターボード",
               "items": [
                 { "name": "BMD-001", "wikiSlug": "BMD-001" },
                 { "name": "BMD-002", "wikiSlug": "BMD-002" },
@@ -166,7 +163,7 @@
           ]
         },
         {
-          "category": "Power Supply",
+          "category": "電源ユニット",
           "rows": [
             {
               "label": "Sony",
