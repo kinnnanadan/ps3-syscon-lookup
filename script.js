@@ -1,5 +1,6 @@
 let errorData = [];
-let selectedRange = 'all';
+let selectedRanges = new Set(); // 空のときは「すべて」扱い
+let selectedTags = new Set();   // 空のときは「すべて」扱い
 
 // --- テーマ切替処理 ---
 const themeToggle = document.getElementById('themeToggle');
@@ -28,10 +29,22 @@ function applyTheme(theme) {
   }
 }
 
+// --- 全角英数字・記号を半角小文字へ正規化する関数 ---
+function normalizeText(str) {
+  if (!str) return '';
+  return str
+    // 全角英数字・記号（！〜～）を半角に変換
+    .replace(/[！-～]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+    // 全角スペースを半角スペースに
+    .replace(/ /g, ' ')
+    .toLowerCase();
+}
+
 // --- DOM要素の取得 ---
 const searchInput = document.getElementById('searchInput');
 const clearBtn = document.getElementById('clearBtn');
-const filterBtns = document.querySelectorAll('.filter-btn');
+const rangeFilterBtns = document.querySelectorAll('#rangeFilterBar .filter-btn');
+const tagFilterBtns = document.querySelectorAll('#tagFilterBar .filter-btn');
 const resultsDiv = document.getElementById('results');
 const resultCount = document.getElementById('resultCount');
 
@@ -65,37 +78,90 @@ function toggleClearButton() {
   }
 }
 
-// 番台フィルタボタンのクリックイベント
-filterBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    filterBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedRange = btn.getAttribute('data-range');
-    updateView();
+// 複数選択トグルの共通セットアップ関数
+function setupMultiFilter(buttons, attrName, selectedSet) {
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.getAttribute(attrName);
+
+      if (val === 'all') {
+        selectedSet.clear();
+      } else {
+        if (selectedSet.has(val)) {
+          selectedSet.delete(val);
+        } else {
+          selectedSet.add(val);
+        }
+      }
+
+      // ボタンのactive見た目を更新
+      buttons.forEach(b => {
+        const bVal = b.getAttribute(attrName);
+        if (bVal === 'all') {
+          b.classList.toggle('active', selectedSet.size === 0);
+        } else {
+          b.classList.toggle('active', selectedSet.has(bVal));
+        }
+      });
+
+      updateView();
+    });
   });
-});
+}
+
+setupMultiFilter(rangeFilterBtns, 'data-range', selectedRanges);
+setupMultiFilter(tagFilterBtns, 'data-tag', selectedTags);
+
+// 部位・部品タグの判定ロジック
+function matchesTagFilter(item, fullTextNormalized) {
+  if (selectedTags.size === 0) return true;
+
+  for (const tag of selectedTags) {
+    if (tag === 'cell' && fullTextNormalized.includes('cell')) return true;
+    if (tag === 'rsx' && fullTextNormalized.includes('rsx')) return true;
+    if (tag === 'capacitor' && (
+      fullTextNormalized.includes('コンデンサ') ||
+      fullTextNormalized.includes('プロードライザ') ||
+      fullTextNormalized.includes('タンタル')
+    )) return true;
+  }
+  return false;
+}
 
 // 絞り込みと描画の統合処理
 function updateView() {
-  const query = searchInput.value.trim().toLowerCase();
+  // カンマ（半角, 全角， 読点、）で分割し、各キーワードを正規化
+  const rawInput = searchInput.value;
+  const terms = rawInput
+    .split(/[,，、]+/)
+    .map(t => normalizeText(t).trim())
+    .filter(t => t.length > 0);
 
   const filtered = errorData.filter(item => {
-    // 1. 番台フィルタ判定（下4桁の先頭1文字で判定）
+    // 1. 番台フィルタ判定（複数選択時はいずれかに一致）
     const shortCode = item.code.slice(-4);
-    const matchesRange = (selectedRange === 'all') || shortCode.startsWith(selectedRange);
+    const matchesRange = (selectedRanges.size === 0) ||
+      Array.from(selectedRanges).some(r => shortCode.startsWith(r));
 
-    // 2. キーワード検索判定（warning内の文字も検索対象に含める）
-    const matchesQuery = !query || (
-      item.code.toLowerCase().includes(query) ||
-      item.category.toLowerCase().includes(query) ||
-      (item.severityLabel && item.severityLabel.toLowerCase().includes(query)) ||
-      item.summary.toLowerCase().includes(query) ||
-      item.cause.toLowerCase().includes(query) ||
-      item.solution.toLowerCase().includes(query) ||
-      (item.warning && item.warning.toLowerCase().includes(query))
-    );
+    if (!matchesRange) return false;
 
-    return matchesRange && matchesQuery;
+    // 検索対象テキストを結合して正規化
+    const searchableText = normalizeText([
+      item.code,
+      item.category,
+      item.severityLabel,
+      item.summary,
+      item.cause,
+      item.solution,
+      item.warning
+    ].filter(Boolean).join(' '));
+
+    // 2. 部位・部品タグフィルタ判定
+    if (!matchesTagFilter(item, searchableText)) return false;
+
+    // 3. カンマ区切りキーワード検索判定（いずれかのキーワードを含む）
+    if (terms.length === 0) return true;
+    return terms.some(term => searchableText.includes(term));
   });
 
   renderResults(filtered);
