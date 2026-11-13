@@ -64,9 +64,9 @@
             {
               "label": "厚型 (NAND)",
               "items": [
-                { "name": "COK-001", "wikiSlug": "COK-001", "note": "90nm CELL + 90nm RSX + EE+GS / NEC/TOKIN 8個" },
-                { "name": "COK-002", "wikiSlug": "COK-002", "note": "90nm CELL + 90nm RSX + GS / NEC/TOKIN 8個" },
-                { "name": "COK-002W", "wikiSlug": "COK-002W" },
+                { "name": "COK-001", "wikiSlug": "COK-001", "articleKey": "COK-00x", "targetSec": 0, "note": "90nm CELL + 90nm RSX + EE+GS / CECHA・CECHB搭載" },
+                { "name": "COK-002", "wikiSlug": "COK-002", "articleKey": "COK-00x", "targetSec": 1, "note": "90nm CELL + 90nm RSX + GSのみ / CECHC・CECHE搭載" },
+                { "name": "COK-002W", "wikiSlug": "COK-002W", "articleKey": "COK-00x", "targetSec": 2, "note": "COK-002の無線LAN（Wi-Fi/Bluetooth）モジュール統合リビジョン" },
                 { "name": "SEM-001", "wikiSlug": "SEM-001", "note": "65nm CELL + 90nm RSX / NEC/TOKIN 8個" }
               ]
             },
@@ -223,68 +223,91 @@
       "title": "CECHAxx（初期型 60GB・PS2ハードウェア互換モデル）",
       "sourceUrl": "https://www.psdevwiki.com/ps3/CECHAxx",
       "lastUpdated": "2026-11-13",
-      "lead": "2006年11月に日本（CECHA00）および北米（CECHA01）で発売された初代PlayStation 3の最上位モデルです。PlayStation 2のCPU（Emotion Engine）とGPU（Graphics Synthesizer）を統合したワンチップ（EE+GS）を基板上に実装しており、極めて高いPS2ソフト互換性を備えています。",
+      "lead": "CECHAxx は、2006年11月に日本および北米・アジア地域で発売された初代 PlayStation 3 の上位モデル（60GB HDD搭載）です。基板上に PlayStation 2 の EE+GS 統合チップを搭載しており、PS2およびPS1のソフトウェアをハードウェアレベルで動作させることができます。",
       "specs": [
-        ["対応地域・型番", "CECHA00（日本・NTSC-J）/ CECHA01（北米・NTSC-U）"],
-        ["搭載マザーボード", "COK-001"],
-        ["CELL BE プロセス", "90nm"],
-        ["RSX GPU プロセス", "90nm"],
-        ["PS2 互換方式", "ハードウェア互換（EE+GS チップ搭載）"],
-        ["フラッシュメモリ", "NAND 256MB（128MB × 2基構成）"],
+        ["マザーボード", "COK-001"],
+        ["CPU / GPU", "90nm CELL BE / 90nm RSX"],
+        ["PS2 互換方式", "ハードウェア互換（EE+GS 統合チップ実装）"],
+        ["フラッシュメモリ", "NAND 256MB（128MB × 2基）"],
+        ["システムメモリ", "256MB XDR DRAM + 256MB GDDR3 VRAM"],
         ["USB 2.0 ポート", "前面 4ポート"],
-        ["カードリーダー", "搭載（MS / SD / CF 対応）"],
+        ["カードリーダー", "搭載（MemoryStick / SD / CompactFlash）"],
+        ["ネットワーク", "有線LAN (1000BASE-T) / IEEE 802.11 b/g Wi-Fi / Bluetooth 2.0"],
         ["SACD 再生", "対応"],
-        ["対応電源ユニット", "APS-226 / APS-231 / LSEB1226A1 / ZSSR539IA"],
-        ["標準Blu-rayドライブ", "BD-400（ピックアップ: KES-400A / ドーターボード: BMD-001）"]
+        ["付属・対応電源", "APS-226 / APS-231 / LSEB1226A1 / ZSSR539IA"],
+        ["Blu-ray ドライブ", "BD-400（ピックアップ: KES-400A / ドーターボード: BMD-001）"],
+        ["出荷時ファームウェア", "1.00 〜 1.10（ダウングレード下限: 1.00）"]
       ],
       "sections": [
         {
-          "heading": "1. ハードウェア上の特徴と注意点",
+          "heading": "1. 地域別型番（SKU）と発売日一覧",
           "paragraphs": [
-            "CECHAxxはPS2互換機能・4つのUSBポート・マルチカードリーダー・SACD再生・クロムメッキのフロントトリムなど、歴代PS3の中で最も豪華なハードウェア仕様を持っています。",
-            "一方で、90nmプロセスのCELLとRSXの両方を搭載しているため消費電力と発熱量が非常に大きく、経年劣化によるYLOD（Yellow Light of Death）が発生しやすいモデルでもあります。"
+            "CECHAxx シリーズは主に NTSC 地域向けに展開され、地域コード（末尾2桁）によって電源電圧やDVD/BDのリージョンが異なります。"
+          ],
+          "table": {
+            "headers": ["型番", "発売地域", "リージョン (BD / DVD)", "発売日", "備考"],
+            "rows": [
+              ["CECHA00", "日本", "A / 2", "2006年11月11日", "100V仕様・決定ボタンは「○」"],
+              ["CECHA01", "北米（アメリカ・カナダ）", "A / 1", "2006年11月17日", "120V仕様・決定ボタンは「×」"],
+              ["CECHA06", "東南アジア（シンガポール・マレーシア等）", "A / 3", "2006年11月17日", "220-240V仕様"],
+              ["CECHA07", "台湾", "A / 3", "2006年11月17日", "110V仕様"],
+              ["CECHA12", "香港", "A / 3", "2006年11月17日", "220-240V仕様"]
+            ]
+          }
+        },
+        {
+          "heading": "2. 外観・ハードウェア構成の特徴",
+          "paragraphs": [
+            "フロントの光学ドライブ挿入口付近およびカードリーダーカバーにクロムメッキ（鏡面シルバー）の装飾が施されており、他のモデル（サテンシルバーやマット仕上げ）と外観から判別できます。",
+            "無線LAN・Bluetoothモジュールはメイン基板とは独立したドーターボード（COK-001用）として接続されており、カードリーダー基板と一体化したユニット構造を採用しています。"
           ]
         },
         {
-          "heading": "2. 主な故障原因と修理・延命のポイント",
+          "heading": "3. 冷却機構と熱設計",
           "paragraphs": [
-            "・90nm RSXのバンプ劣化（Sysconエラー 3034）：RSX内部のアンダーフィル劣化により、熱膨張と収縮を繰り返すことでBGA接合部が断線します。根本的な修理には40nmまたは65nm RSXへの換装（いわゆるFrankenstein MOD）が必要です。",
-            "・NEC/TOKINプロードライザの容量抜け（Sysconエラー 1001 / 1002）：CELLおよびRSXの電源ラインに合計8個実装されているプロードライザが劣化すると、高負荷時や起動直後に電源が落ちます。タンタルコンデンサへの交換で復旧可能です。",
-            "・グリスの乾燥による熱暴走（Sysconエラー 1200 / 1201）：ヒートスプレッダ（IHS）内部のグリスが経年で硬化しているため、適切なファン制御（WebMAN MODやSyscon熱テーブル変更）およびIHS殻割りによるグリス塗り替えが効果的です。"
-          ],
-          "warning": "CECHA00/01はNANDフラッシュ（256MB）を2チップに分割してデータを格納しています。CFW導入やシステム書き換えを行う際は、必ず事前にNANDダンプのバックアップを取得し、整合性を検証してください。"
+            "90nm CELL と 90nm RSX に加え、PS2互換用の EE+GS チップも発熱源となるため、初期型専用の大型ヒートシンク（ヒートパイプ内蔵型・初期ロットはアルミベース＋銅ヒートパイプ構成）と19枚羽根（または15枚羽根）の大型シロッコファンを搭載しています。",
+            "電源ユニット（PSU）も本体上部に配置されており、初期のメタル筐体モデル（APS-226）から後のプラスチック筐体モデル（APS-231）へ段階的に変更されました。"
+          ]
         }
       ]
     },
-    "COK-001": {
-      "title": "COK-001（初期型NANDマザーボード）",
+    "COK-00x": {
+      "title": "COK-00x（COK-001 / COK-002 / COK-002W マザーボード）",
       "sourceUrl": "https://www.psdevwiki.com/ps3/COK-001",
       "lastUpdated": "2026-11-13",
-      "lead": "CECHAxx および CECHBxx に採用されている初代PS3用マザーボードです。基板上にPS2のEE+GSチップ、Rambus XDR DRAM、2基のNANDフラッシュを搭載した非常に高密度な設計となっています。",
+      "lead": "COK-00x シリーズは、2006年〜2007年にかけて製造された初期型 PlayStation 3（NANDフラッシュ搭載・PS2互換モデル）用のマザーボード群です。リビジョンによって搭載されているPS2用チップおよび無線モジュールの実装形態が異なります。",
       "specs": [
-        ["搭載モデル", "CECHA00 / CECHA01 / CECHB00 / CECHB01"],
+        ["リビジョン一覧", "COK-001 / COK-002 / COK-002W"],
         ["CPU / GPU", "90nm CELL BE / 90nm RSX"],
-        ["PS2 チップ", "CXD2972GB（EE+GS 統合チップ）+ RDRAM 32MB"],
-        ["Syscon IC", "CXR714120（Mullion アーキテクチャ）"],
-        ["フラッシュメモリ", "Samsung NAND 128MB × 2（計256MB）"],
-        ["NEC/TOKIN 配置", "計8個（CELL側：表面2・裏面2 / RSX側：表面2・裏面2）"],
-        ["内蔵電池", "CR2032（基板直付けホルダー）"]
+        ["フラッシュメモリ", "NAND 256MB（128MB × 2基）"],
+        ["システムメモリ", "256MB XDR DRAM + 256MB GDDR3 VRAM"],
+        ["Syscon IC", "CXR714120（Mullion）"],
+        ["サウスブリッジ", "CXD2973GB"],
+        ["NEC/TOKIN プロードライザ", "計8個（CELL側：表面2・裏面2 / RSX側：表面2・裏面2）"]
       ],
       "sections": [
         {
-          "heading": "1. Syscon UART 接続（Mullion）",
+          "heading": "1. COK-001",
           "paragraphs": [
-            "COK-001のSysconはMullionタイプのため、UART経由で診断モードに入るには基板上の「DIAG」テストポイントをGNDへショートさせた状態で電源（主電源スイッチON）を入れる必要があります。",
-            "通信速度は 57600 bps（3.3V TTLレベル）を使用します。"
+            "CECHAxx（60GB・Wi-Fiあり）および CECHBxx（20GB・Wi-Fiなし）に搭載されている初代マザーボードです。",
+            "基板上に PS2 の CPU と GPU を1チップに統合した「EE+GS（CXD2972GB）」および専用の 32MB RDRAM を実装しており、PS2ソフトをハードウェアで直接実行します。",
+            "無線LAN（Wi-Fi）・Bluetooth 機能はマザーボード上には実装されておらず、上位モデルの CECHAxx のみ、カードリーダーと一体型の別基板モジュールをコネクタで接続する構成になっています（CECHBxx では該当コネクタとカードリーダーが省略されています）。"
           ]
         },
         {
-          "heading": "2. 40nm RSX 換装（Frankenstein MOD）適性",
+          "heading": "2. COK-002",
           "paragraphs": [
-            "COK-001は40nm RSX（CXD5300系）への換装ベース基板として最も人気があります。",
-            "換装にあたっては、BGAリワーク機によるRSX張り替えに加え、RSX周辺抵抗値の変更（VDDIO/VDDC関連）およびSyscon内のファン・熱制御・トレーニングデータのパッチ適用が必要になります。"
-          ],
-          "warning": "COK-001のCELL・RSX周辺のNEC/TOKINプロードライザを4個すべて取り外す場合、素子内部を通っていたプラス（+）ラインが分断されます。タンタルコンデンサへ置き換える際は、必ずプラス側ランド同士をジャンパー線や銅箔テープ等でブリッジ接続してください。"
+            "欧州（PAL）地域向けの CECHCxx（60GB）および北米地域向けの CECHExx（80GB）に搭載されているリビジョンです。",
+            "コスト削減のため、COK-001 に搭載されていた EE+GS チップから Emotion Engine（PS2のCPU）部分が削除され、Graphics Synthesizer（GS：CXD2976GB）のみを搭載しています。PS2のCPU処理は CELL によるソフトウェアエミュレーションで行い、描画処理をハードウェアの GS が担当する「半ソフトウェア（ハイブリッド）互換」方式です。",
+            "基板レイアウトの基本設計は COK-001 を踏襲しており、EEPROM（EE）チップが実装されていた箇所は空きランドになっています。"
+          ]
+        },
+        {
+          "heading": "3. COK-002W",
+          "paragraphs": [
+            "COK-002 の派生リビジョンであり、型番末尾の「W」は Wireless（無線モジュール統合）を表しています。",
+            "COK-001 および初期の COK-002 では別基板として接続されていた Wi-Fi / Bluetooth モジュール（Marvell製チップ等）が、COK-002W ではメインマザーボード上に直接実装される設計へ変更されています。PS2互換方式（GSチップのみ搭載）やその他の基本仕様は COK-002 と同等です。"
+          ]
         }
       ]
     }
