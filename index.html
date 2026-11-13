@@ -14,24 +14,39 @@
         <button id="themeToggle" class="theme-btn" aria-label="テーマ切替">🌙 ダーク</button>
       </div>
       <p class="site-description">
-        PlayStation 3 の Syscon エラーログ（UART出力など）から、故障の原因と修理・切り分けの対処方法を検索できるデータベースです。エラーコード（下4桁のみでも可）や部品名で検索できます。
+        PlayStation 3 の Syscon エラーログ（UART出力など）から、故障の原因と修理・切り分けの対処方法を検索できるデータベースです。カンマ区切り（例: 1001,1002）での複数検索や全角数字での入力にも対応しています。
       </p>
     </header>
 
     <main>
       <div class="search-box">
         <div class="search-input-wrapper">
-          <input type="text" id="searchInput" placeholder="エラーコードやキーワードを入力 (例: 1002, 3034, CELL)">
+          <input type="text" id="searchInput" placeholder="コードやキーワードを入力 (例: 1001,1002 / ３０３４ / CELL)">
           <button id="clearBtn" class="clear-btn hidden" aria-label="検索をクリア" title="クリア">×</button>
         </div>
       </div>
 
-      <div class="filter-bar" id="filterBar" role="group" aria-label="エラーコード番台絞り込み">
-        <button class="filter-btn active" data-range="all">すべて</button>
-        <button class="filter-btn" data-range="1">1000番台</button>
-        <button class="filter-btn" data-range="2">2000番台</button>
-        <button class="filter-btn" data-range="3">3000番台</button>
-        <button class="filter-btn" data-range="4">4000番台</button>
+      <div class="filter-section">
+        <div class="filter-group">
+          <span class="filter-label">番台：</span>
+          <div class="filter-bar" id="rangeFilterBar" role="group" aria-label="エラーコード番台絞り込み">
+            <button class="filter-btn active" data-range="all">すべて</button>
+            <button class="filter-btn" data-range="1">1000番台</button>
+            <button class="filter-btn" data-range="2">2000番台</button>
+            <button class="filter-btn" data-range="3">3000番台</button>
+            <button class="filter-btn" data-range="4">4000番台</button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">関連：</span>
+          <div class="filter-bar" id="tagFilterBar" role="group" aria-label="部位・部品絞り込み">
+            <button class="filter-btn active" data-tag="all">すべて</button>
+            <button class="filter-btn" data-tag="cell">CELL</button>
+            <button class="filter-btn" data-tag="rsx">RSX</button>
+            <button class="filter-btn" data-tag="capacitor">コンデンサ</button>
+          </div>
+        </div>
       </div>
 
       <div class="result-meta">
