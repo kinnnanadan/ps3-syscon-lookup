@@ -77,7 +77,26 @@ h1 {
 .site-description {
   font-size: 0.92rem;
   color: var(--text-muted);
-  margin: 0;
+  margin: 0 0 12px 0;
+}
+
+/* 免責事項ボックス */
+.disclaimer-box {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #dc2626;
+  color: #7f1d1d;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+[data-theme="dark"] .disclaimer-box {
+  background-color: rgba(220, 38, 38, 0.14);
+  border-color: rgba(248, 113, 113, 0.3);
+  border-left-color: #ef4444;
+  color: #fecaca;
 }
 
 /* テーマ切替ボタン */
@@ -388,6 +407,11 @@ h1 {
   .theme-btn {
     padding: 6px 10px;
     font-size: 0.8rem;
+  }
+
+  .disclaimer-box {
+    font-size: 0.8rem;
+    padding: 8px 12px;
   }
 
   .filter-label {
