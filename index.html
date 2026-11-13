@@ -33,6 +33,9 @@
         <a href="#home" class="nav-item active" data-view="home">
           <span class="nav-icon">🏠</span> TOP・はじめに
         </a>
+        <a href="#wiki" class="nav-item" data-view="wiki">
+          <span class="nav-icon">📖</span> Dev Wiki 日本語版
+        </a>
         <a href="#references" class="nav-item" data-view="references">
           <span class="nav-icon">📚</span> 参考資料・ライセンス
         </a>
@@ -81,12 +84,18 @@
               管理人自身のPS3修理・検証の備忘録をベースに、これから修理に挑戦する初心者の方でも「どのエラーが何を表していて、どこから手を付けるべきか」を直感的に把握できるよう整理しています。
             </p>
 
-            <h3>収録ツール一覧</h3>
+            <h3>収録コンテンツ・ツール一覧</h3>
             <div class="tool-grid">
               <a href="#search" class="tool-link-card" data-view="search">
                 <div class="tool-card-title">🔍 Syscon エラーコード検索</div>
                 <p>UART等で取得したエラーコード（1001, 3034など）から原因・対処法・作業時の注意点を検索できます。カンマ区切りの複数検索や番台・部品別の絞り込みに対応。</p>
                 <span class="tool-card-action">ツールを開く →</span>
+              </a>
+
+              <a href="#wiki" class="tool-link-card" data-view="wiki">
+                <div class="tool-card-title">📖 PS3 Dev Wiki 日本語版</div>
+                <p>PS3 Developer Wiki の技術資料（Syscon UART接続方法・コマンド一覧・基板リビジョン別一覧など）を日本語化して整理したリファレンスページです。</p>
+                <span class="tool-card-action">ページを開く →</span>
               </a>
 
               <a href="#fan-calc" class="tool-link-card" data-view="fan-calc">
@@ -98,15 +107,33 @@
 
             <h3>更新履歴</h3>
             <ul class="changelog-list">
+              <li><strong>2026-11-13:</strong> 「📖 PS3 Dev Wiki 日本語版」リファレンスページ（GFDL 1.2準拠）を追加。</li>
               <li><strong>2026-11-13:</strong> 文字・アイコンサイズ切替（大・中・小）機能を追加し、スマホ表示の横幅レイアウトを修正。</li>
               <li><strong>2026-11-13:</strong> メインメニューに「📚 参考資料・ライセンス」ページを追加。</li>
-              <li><strong>2026-11-13:</strong> 「🌀 ファン制御値計算（% ⇄ 16進数変換）」ツールを追加。</li>
             </ul>
           </div>
         </section>
 
         <!-- ==========================================
-             画面2: 参考資料・ライセンス (#references)
+             画面2: PS3 Dev Wiki 日本語版 (#wiki)
+             ========================================== -->
+        <section id="view-wiki" class="page-view">
+          <div class="page-header">
+            <h1>📖 PS3 Dev Wiki 日本語リファレンス</h1>
+            <p class="site-description">
+              PS3 Developer Wiki の技術ドキュメントを日本語で整理した資料ページです（GFDL 1.2 準拠）。上部のタブから閲覧したい記事を選択できます。
+            </p>
+          </div>
+
+          <!-- 記事切り替えタブ -->
+          <div class="wiki-nav-bar" id="wikiArticleTabs" role="tablist" aria-label="Wiki記事一覧"></div>
+
+          <!-- 記事本体描画エリア -->
+          <div id="wikiArticleContainer"></div>
+        </section>
+
+        <!-- ==========================================
+             画面3: 参考資料・ライセンス (#references)
              ========================================== -->
         <section id="view-references" class="page-view">
           <div class="page-header">
@@ -131,8 +158,12 @@
                 <a href="https://www.psdevwiki.com/ps3/Syscon_Error_Codes" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.psdevwiki.com/ps3/Syscon_Error_Codes</a>
               </li>
               <li>
-                <strong>PS3 Developer Wiki - Thermal / Fan Control（熱制御・ファン制御関連）</strong><br>
-                <a href="https://www.psdevwiki.com/ps3/Thermal" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.psdevwiki.com/ps3/Thermal</a>
+                <strong>PS3 Developer Wiki - Syscon（UART接続・コマンド仕様）</strong><br>
+                <a href="https://www.psdevwiki.com/ps3/Syscon" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.psdevwiki.com/ps3/Syscon</a>
+              </li>
+              <li>
+                <strong>PS3 Developer Wiki - Motherboard Revisions（基板リビジョン一覧）</strong><br>
+                <a href="https://www.psdevwiki.com/ps3/Motherboard_Revisions" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.psdevwiki.com/ps3/Motherboard_Revisions</a>
               </li>
             </ul>
           </div>
@@ -153,10 +184,7 @@
                 <a href="https://www.gnu.org/licenses/old-licenses/fdl-1.2.html" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.gnu.org/licenses/old-licenses/fdl-1.2.html</a>
               </li>
               <li>
-                本サイトでは、同Wikiで公開されている技術的仕様（エラーコード番号・ハードウェア仕様等の事実情報）を参照しつつ、初心者にも分かりやすいよう独自の構成・日本語解説でデータベース化を行っています。
-              </li>
-              <li>
-                今後、同Wikiの文章の翻訳や図表等を直接引用・転載する箇所を追加する場合は、GFDL 1.2 の規定に従い該当箇所への出典明記およびライセンス継承条件を遵守します。
+                「📖 Dev Wiki 日本語版」ページ内の翻訳・翻案記事については、GFDL 1.2 の規定に基づき元ページへのリンク・翻訳履歴・ライセンス継承条件を各記事内に明記しています。
               </li>
               <li>
                 「PlayStation」「PS3」「CELL」「RSX」等の名称は、ソニー・インタラクティブエンタテインメントまたは各権利者の商標・登録商標です。本サイトは個人の技術研究・情報共有を目的とした非公式のファンサイトであり、メーカー各社とは一切関係ありません。
@@ -166,7 +194,7 @@
         </section>
 
         <!-- ==========================================
-             画面3: Syscon エラーコード検索 (#search)
+             画面4: Syscon エラーコード検索 (#search)
              ========================================== -->
         <section id="view-search" class="page-view">
           <div class="page-header">
@@ -214,7 +242,7 @@
         </section>
 
         <!-- ==========================================
-             画面4: ファン制御値計算 (#fan-calc)
+             画面5: ファン制御値計算 (#fan-calc)
              ========================================== -->
         <section id="view-fan-calc" class="page-view">
           <div class="page-header">
@@ -230,7 +258,6 @@
           </div>
 
           <div class="calc-grid">
-            <!-- 左カード: % -> 16進数 -->
             <div class="calc-card">
               <h2>% → 16進数 に変換</h2>
               <label for="pctInput" class="calc-label">ファン速度（0 〜 100 %）</label>
@@ -266,7 +293,6 @@
               </div>
             </div>
 
-            <!-- 右カード: 16進数 -> % -->
             <div class="calc-card">
               <h2>16進数 → % に変換</h2>
               <label for="hexInput" class="calc-label">16進数値（00 〜 FF / 0x00 〜 0xFF）</label>
@@ -300,7 +326,6 @@
             </div>
           </div>
 
-          <!-- 早見表カード -->
           <div class="readme-card" style="margin-top: 18px;">
             <h2>📊 ファン速度 ⇄ 16進数 早見表</h2>
             <p class="site-description" style="margin-bottom: 12px;">
