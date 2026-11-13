@@ -35,13 +35,9 @@
         <a href="#search" class="nav-item" data-view="search">
           <span class="nav-icon">🔍</span> Syscon エラー検索
         </a>
-
-        <!-- ▼ 新しいメニューを追加する時はここをコピーして data-view と href を変更 ▼ -->
-        <!--
         <a href="#fan-calc" class="nav-item" data-view="fan-calc">
           <span class="nav-icon">🌀</span> ファン制御値計算
         </a>
-        -->
       </nav>
 
       <div class="sidebar-footer">
@@ -67,7 +63,7 @@
           <div class="disclaimer-box" role="note">
             <strong>【重要・免責事項】必ずお読みください</strong><br>
             本サイトは修理作業や故障切り分けの参考情報として公開していますが、記載内容の正確性・完全性を保証するものではありません。<br>
-            分解・殻割り（Delid）・ハンダ付け・基板改造などの作業は<strong>すべて自己責任</strong>にて行ってください。本サイトの情報を参考にして発生した機器の破損・データ消失・感電・火災等のいかなる損害についても、制作者は一切の責任を負いかねます。
+            分解・殻割り（Delid）・ハンダ付け・基板改造・Syscon設定変更などの作業は<strong>すべて自己責任</strong>にて行ってください。本サイトの情報を参考にして発生した機器の破損・データ消失・感電・火災等のいかなる損害についても、制作者は一切の責任を負いかねます。
           </div>
 
           <div class="readme-card">
@@ -84,15 +80,16 @@
                 <span class="tool-card-action">ツールを開く →</span>
               </a>
 
-              <!-- 今後ツールを増やしたらここにも紹介カードを追加できます -->
-              <div class="tool-link-card coming-soon">
-                <div class="tool-card-title">🛠️ 今後の追加予定ツール</div>
-                <p>Syscon ファン制御（16進数）変換ツール、基板リビジョン別の確認ポイント、各種テストポイント資料などを順次追加予定です。</p>
-              </div>
+              <a href="#fan-calc" class="tool-link-card" data-view="fan-calc">
+                <div class="tool-card-title">🌀 ファン制御値計算（% ⇄ 16進数）</div>
+                <p>Sysconのファン速度設定や温度テーブル編集で使用する「%（0〜100%）」と「16進数（0x00〜0xFF）」を相互変換できる計算ツールです。</p>
+                <span class="tool-card-action">ツールを開く →</span>
+              </a>
             </div>
 
             <h3>更新履歴</h3>
             <ul class="changelog-list">
+              <li><strong>2026-11-13:</strong> 「🌀 ファン制御値計算（% ⇄ 16進数変換）」ツールを追加。</li>
               <li><strong>2026-11-13:</strong> TOPページ（README・免責事項）とサイドメニューを追加し、複数ツールを格納できる構成へ刷新。</li>
               <li><strong>2026-11-13:</strong> Sysconエラー検索にカンマ複数検索・全角対応・複数絞り込み・重要注意事項ボックスを実装。</li>
             </ul>
@@ -147,18 +144,115 @@
           <div id="results"></div>
         </section>
 
-        <!-- ▼ 新しい画面を追加する時はここをコピーして id="view-〇〇" を変更 ▼ -->
-        <!--
+        <!-- ==========================================
+             画面3: ファン制御値計算 (#fan-calc)
+             ========================================== -->
         <section id="view-fan-calc" class="page-view">
           <div class="page-header">
-            <h1>ファン制御値計算</h1>
-            <p class="site-description">ここにツールの説明文を書きます。</p>
+            <h1>🌀 ファン制御値計算（% ⇄ 16進数）</h1>
+            <p class="site-description">
+              PS3 Syscon のファンPWMデューティ比（<code>0%〜100%</code>）と 16進数制御値（<code>0x00〜0xFF</code>）を相互に変換します（全角入力対応）。
+            </p>
           </div>
-          <div class="readme-card">
-            <p>ここにツールの本体を作ります。</p>
+
+          <div class="disclaimer-box" role="note">
+            <strong>【免責事項・作業上の注意】</strong><br>
+            ファン回転数を極端に低く設定すると、CELL/RSXのオーバーヒートや熱損傷につながる恐れがあります。また、Sysconへのコマンド送信や熱制御テーブルの書き換えは、記述ミスにより起動不能（ブリック）になるリスクを伴います。数値の設定・コマンド実行は<strong>すべて自己責任</strong>にて行ってください。
+          </div>
+
+          <div class="calc-grid">
+            <!-- 左カード: % -> 16進数 -->
+            <div class="calc-card">
+              <h2>% → 16進数 に変換</h2>
+              <label for="pctInput" class="calc-label">ファン速度（0 〜 100 %）</label>
+              <div class="calc-input-row">
+                <input type="text" id="pctInput" class="calc-input" value="35" inputmode="decimal" placeholder="例: 35">
+                <span class="calc-unit">%</span>
+              </div>
+
+              <div class="preset-group">
+                <span class="preset-title">よく使う値：</span>
+                <button type="button" class="preset-btn" data-pct="20">20%</button>
+                <button type="button" class="preset-btn" data-pct="25">25%</button>
+                <button type="button" class="preset-btn" data-pct="30">30%</button>
+                <button type="button" class="preset-btn" data-pct="35">35%</button>
+                <button type="button" class="preset-btn" data-pct="40">40%</button>
+                <button type="button" class="preset-btn" data-pct="50">50%</button>
+                <button type="button" class="preset-btn" data-pct="80">80%</button>
+                <button type="button" class="preset-btn" data-pct="100">100%</button>
+              </div>
+
+              <div class="calc-result-box" id="pctToHexResult">
+                <div class="result-main-row">
+                  <div>
+                    <div class="result-sub-label">16進数（0x表記）</div>
+                    <div class="result-big-value" id="hexOutWithPrefix">0x59</div>
+                  </div>
+                  <button type="button" class="copy-btn" data-copy-target="hexOutWithPrefix">コピー</button>
+                </div>
+                <div class="result-details">
+                  <span>16進数（値のみ）: <strong id="hexOutPlain">59</strong></span>
+                  <span>10進数（0〜255）: <strong id="decOutFromPct">89</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 右カード: 16進数 -> % -->
+            <div class="calc-card">
+              <h2>16進数 → % に変換</h2>
+              <label for="hexInput" class="calc-label">16進数値（00 〜 FF / 0x00 〜 0xFF）</label>
+              <div class="calc-input-row">
+                <input type="text" id="hexInput" class="calc-input" value="0x33" placeholder="例: 33 または 0x33">
+              </div>
+
+              <div class="preset-group">
+                <span class="preset-title">代表値：</span>
+                <button type="button" class="preset-btn" data-hex="0x33">0x33</button>
+                <button type="button" class="preset-btn" data-hex="0x40">0x40</button>
+                <button type="button" class="preset-btn" data-hex="0x4D">0x4D</button>
+                <button type="button" class="preset-btn" data-hex="0x66">0x66</button>
+                <button type="button" class="preset-btn" data-hex="0x80">0x80</button>
+                <button type="button" class="preset-btn" data-hex="0xFF">0xFF</button>
+              </div>
+
+              <div class="calc-result-box" id="hexToPctResult">
+                <div class="result-main-row">
+                  <div>
+                    <div class="result-sub-label">ファン速度（%）</div>
+                    <div class="result-big-value" id="pctOutExact">20.0%</div>
+                  </div>
+                  <button type="button" class="copy-btn" data-copy-target="pctOutExact">コピー</button>
+                </div>
+                <div class="result-details">
+                  <span>四捨五入（整数）: <strong id="pctOutRound">20%</strong></span>
+                  <span>10進数（0〜255）: <strong id="decOutFromHex">51</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 早見表カード -->
+          <div class="readme-card" style="margin-top: 18px;">
+            <h2>📊 ファン速度 ⇄ 16進数 早見表</h2>
+            <p class="site-description" style="margin-bottom: 12px;">
+              計算式: <code>10進数 = 四捨五入(パーセント ÷ 100 × 255)</code> を 16進数へ変換しています。
+            </p>
+            <div class="table-wrapper">
+              <table class="ref-table">
+                <thead>
+                  <tr>
+                    <th>速度 (%)</th>
+                    <th>16進数 (0x表記)</th>
+                    <th>16進数 (値のみ)</th>
+                    <th>10進数 (PWM)</th>
+                    <th>備考</th>
+                  </tr>
+                </thead>
+                <tbody id="fanRefTableBody"></tbody>
+              </table>
+            </div>
           </div>
         </section>
-        -->
 
         <footer class="site-footer">
           <p>
