@@ -11,7 +11,10 @@
   <header class="mobile-header">
     <button id="menuToggle" class="menu-btn" aria-label="メニューを開く">☰</button>
     <span class="mobile-title">PS3 修理・解析DB</span>
-    <button id="themeToggleMobile" class="theme-btn-mini" aria-label="テーマ切替">🌙</button>
+    <div class="header-controls">
+      <button id="fontSizeToggleMobile" class="theme-btn-mini font-btn-mini" aria-label="文字サイズ切替" title="文字・アイコンサイズ変更">文字:中</button>
+      <button id="themeToggleMobile" class="theme-btn-mini" aria-label="テーマ切替" title="ダーク/ライト切替">🌙</button>
+    </div>
   </header>
 
   <!-- スマホでメニューを開いた時の背景暗転オーバーレイ -->
@@ -44,7 +47,10 @@
       </nav>
 
       <div class="sidebar-footer">
-        <button id="themeToggle" class="theme-btn" aria-label="テーマ切替">🌙 ダークモード</button>
+        <div class="sidebar-controls">
+          <button id="themeToggle" class="theme-btn" aria-label="テーマ切替">🌙 ダーク</button>
+          <button id="fontSizeToggle" class="theme-btn font-size-btn" aria-label="文字サイズ切替">文字:中</button>
+        </div>
       </div>
     </aside>
 
@@ -92,9 +98,9 @@
 
             <h3>更新履歴</h3>
             <ul class="changelog-list">
+              <li><strong>2026-11-13:</strong> 文字・アイコンサイズ切替（大・中・小）機能を追加し、スマホ表示の横幅レイアウトを修正。</li>
               <li><strong>2026-11-13:</strong> メインメニューに「📚 参考資料・ライセンス」ページを追加。</li>
               <li><strong>2026-11-13:</strong> 「🌀 ファン制御値計算（% ⇄ 16進数変換）」ツールを追加。</li>
-              <li><strong>2026-11-13:</strong> TOPページ（README・免責事項）とサイドメニューを追加し、複数ツールを格納できる構成へ刷新。</li>
             </ul>
           </div>
         </section>
@@ -118,15 +124,15 @@
             <ul class="changelog-list">
               <li>
                 <strong>PS3 Developer Wiki（メインページ）</strong><br>
-                <a href="https://www.psdevwiki.com/ps3/" target="_blank" rel="noopener noreferrer" style="color: var(--link-color);">https://www.psdevwiki.com/ps3/</a>
+                <a href="https://www.psdevwiki.com/ps3/" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.psdevwiki.com/ps3/</a>
               </li>
               <li>
                 <strong>PS3 Developer Wiki - Syscon Error Codes（エラーコード一覧）</strong><br>
-                <a href="https://www.psdevwiki.com/ps3/Syscon_Error_Codes" target="_blank" rel="noopener noreferrer" style="color: var(--link-color);">https://www.psdevwiki.com/ps3/Syscon_Error_Codes</a>
+                <a href="https://www.psdevwiki.com/ps3/Syscon_Error_Codes" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.psdevwiki.com/ps3/Syscon_Error_Codes</a>
               </li>
               <li>
                 <strong>PS3 Developer Wiki - Thermal / Fan Control（熱制御・ファン制御関連）</strong><br>
-                <a href="https://www.psdevwiki.com/ps3/Thermal" target="_blank" rel="noopener noreferrer" style="color: var(--link-color);">https://www.psdevwiki.com/ps3/Thermal</a>
+                <a href="https://www.psdevwiki.com/ps3/Thermal" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.psdevwiki.com/ps3/Thermal</a>
               </li>
             </ul>
           </div>
@@ -144,7 +150,7 @@
             <ul class="changelog-list">
               <li>
                 <strong>GNU Free Documentation License, Version 1.2（公式原文）:</strong><br>
-                <a href="https://www.gnu.org/licenses/old-licenses/fdl-1.2.html" target="_blank" rel="noopener noreferrer" style="color: var(--link-color);">https://www.gnu.org/licenses/old-licenses/fdl-1.2.html</a>
+                <a href="https://www.gnu.org/licenses/old-licenses/fdl-1.2.html" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.gnu.org/licenses/old-licenses/fdl-1.2.html</a>
               </li>
               <li>
                 本サイトでは、同Wikiで公開されている技術的仕様（エラーコード番号・ハードウェア仕様等の事実情報）を参照しつつ、初心者にも分かりやすいよう独自の構成・日本語解説でデータベース化を行っています。
