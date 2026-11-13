@@ -28,14 +28,46 @@ if (themeToggleMobile) {
 function applyTheme(theme) {
   if (theme === 'dark') {
     rootElement.setAttribute('data-theme', 'dark');
-    themeToggle.textContent = '☀️ ライトモード';
+    themeToggle.textContent = '☀️ ライト';
     if (themeToggleMobile) themeToggleMobile.textContent = '☀️';
   } else {
     rootElement.removeAttribute('data-theme');
-    themeToggle.textContent = '🌙 ダークモード';
+    themeToggle.textContent = '🌙 ダーク';
     if (themeToggleMobile) themeToggleMobile.textContent = '🌙';
   }
 }
+
+// --- 文字・アイコンサイズ切替処理（中 -> 大 -> 小 の順で切替） ---
+const fontSizeToggle = document.getElementById('fontSizeToggle');
+const fontSizeToggleMobile = document.getElementById('fontSizeToggleMobile');
+const fontSizes = ['medium', 'large', 'small'];
+const fontSizeLabels = {
+  small: '文字:小',
+  medium: '文字:中',
+  large: '文字:大'
+};
+
+const savedFontSize = localStorage.getItem('fontSize');
+const initialFontSize = fontSizes.includes(savedFontSize) ? savedFontSize : 'medium';
+applyFontSize(initialFontSize);
+
+function cycleFontSize() {
+  const current = rootElement.getAttribute('data-font-size') || 'medium';
+  const nextIndex = (fontSizes.indexOf(current) + 1) % fontSizes.length;
+  const nextSize = fontSizes[nextIndex];
+  applyFontSize(nextSize);
+  localStorage.setItem('fontSize', nextSize);
+}
+
+function applyFontSize(size) {
+  rootElement.setAttribute('data-font-size', size);
+  const label = fontSizeLabels[size] || '文字:中';
+  if (fontSizeToggle) fontSizeToggle.textContent = label;
+  if (fontSizeToggleMobile) fontSizeToggleMobile.textContent = label;
+}
+
+if (fontSizeToggle) fontSizeToggle.addEventListener('click', cycleFontSize);
+if (fontSizeToggleMobile) fontSizeToggleMobile.addEventListener('click', cycleFontSize);
 
 // --- スマホ用サイドメニュー開閉処理 ---
 const sidebar = document.getElementById('sidebar');
@@ -268,7 +300,6 @@ const pctOutExact = document.getElementById('pctOutExact');
 const pctOutRound = document.getElementById('pctOutRound');
 const decOutFromHex = document.getElementById('decOutFromHex');
 
-// 1. % -> 16進数 変換
 function convertPctToHex() {
   const normalized = normalizeText(pctInput.value).replace(/%/g, '').trim();
   const val = parseFloat(normalized);
@@ -290,7 +321,6 @@ function convertPctToHex() {
   decOutFromPct.textContent = `${dec}`;
 }
 
-// 2. 16進数 -> % 変換
 function convertHexToPct() {
   let normalized = normalizeText(hexInput.value).trim();
   if (normalized.startsWith('0x')) {
@@ -327,7 +357,6 @@ if (pctInput && hexInput) {
   pctInput.addEventListener('input', convertPctToHex);
   hexInput.addEventListener('input', convertHexToPct);
 
-  // プリセットボタンの連動
   document.querySelectorAll('.preset-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       if (btn.hasAttribute('data-pct')) {
@@ -340,7 +369,6 @@ if (pctInput && hexInput) {
     });
   });
 
-  // コピーボタンの処理
   document.querySelectorAll('.copy-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-copy-target');
@@ -357,12 +385,10 @@ if (pctInput && hexInput) {
     });
   });
 
-  // 初期計算を実行
   convertPctToHex();
   convertHexToPct();
 }
 
-// 3. 早見表の自動生成
 const fanRefTableBody = document.getElementById('fanRefTableBody');
 if (fanRefTableBody) {
   const presets = [
