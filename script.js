@@ -2,8 +2,9 @@ let errorData = [];
 let selectedRanges = new Set();
 let selectedTags = new Set();
 
-// --- テーマ切替処理 ---
+// --- テーマ切替処理（PCサイドバー・スマホヘッダー両対応） ---
 const themeToggle = document.getElementById('themeToggle');
+const themeToggleMobile = document.getElementById('themeToggleMobile');
 const rootElement = document.documentElement;
 
 const savedTheme = localStorage.getItem('theme');
@@ -12,33 +13,91 @@ const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
 
 applyTheme(initialTheme);
 
-themeToggle.addEventListener('click', () => {
+function toggleTheme() {
   const currentTheme = rootElement.getAttribute('data-theme');
   const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
   applyTheme(nextTheme);
   localStorage.setItem('theme', nextTheme);
-});
+}
+
+themeToggle.addEventListener('click', toggleTheme);
+if (themeToggleMobile) {
+  themeToggleMobile.addEventListener('click', toggleTheme);
+}
 
 function applyTheme(theme) {
   if (theme === 'dark') {
     rootElement.setAttribute('data-theme', 'dark');
-    themeToggle.textContent = '☀️ ライト';
+    themeToggle.textContent = '☀️ ライトモード';
+    if (themeToggleMobile) themeToggleMobile.textContent = '☀️';
   } else {
     rootElement.removeAttribute('data-theme');
-    themeToggle.textContent = '🌙 ダーク';
+    themeToggle.textContent = '🌙 ダークモード';
+    if (themeToggleMobile) themeToggleMobile.textContent = '🌙';
   }
 }
+
+// --- スマホ用サイドメニュー開閉処理 ---
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+const menuToggle = document.getElementById('menuToggle');
+const menuClose = document.getElementById('menuClose');
+
+function openSidebar() {
+  sidebar.classList.add('open');
+  sidebarOverlay.classList.add('open');
+}
+
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  sidebarOverlay.classList.remove('open');
+}
+
+if (menuToggle) menuToggle.addEventListener('click', openSidebar);
+if (menuClose) menuClose.addEventListener('click', closeSidebar);
+if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+
+// --- 画面切り替え（ルーター）処理 ---
+const navItems = document.querySelectorAll('.nav-item');
+const pageViews = document.querySelectorAll('.page-view');
+
+function switchView(viewName) {
+  const targetView = document.getElementById(`view-${viewName}`);
+  // 存在しないビュー名が指定された場合は home に戻す
+  const activeName = targetView ? viewName : 'home';
+
+  pageViews.forEach(view => {
+    view.classList.toggle('active', view.id === `view-${activeName}`);
+  });
+
+  navItems.forEach(item => {
+    item.classList.toggle('active', item.getAttribute('data-view') === activeName);
+  });
+
+  closeSidebar();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// ハッシュURL（#home, #search など）の変化を監視
+function handleHashChange() {
+  const hash = window.location.hash.replace('#', '');
+  switchView(hash || 'home');
+}
+
+window.addEventListener('hashchange', handleHashChange);
+// 初回読み込み時にも現在のURLハッシュを反映
+handleHashChange();
 
 // --- 全角英数字・記号を半角小文字へ正規化する関数 ---
 function normalizeText(str) {
   if (!str) return '';
   return str
     .replace(/[！-～]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
-    .replace(/ /g, ' ')
+    .replace(/　/g, ' ')
     .toLowerCase();
 }
 
-// --- DOM要素の取得 ---
+// --- Syscon エラー検索処理 ---
 const searchInput = document.getElementById('searchInput');
 const clearBtn = document.getElementById('clearBtn');
 const rangeFilterBtns = document.querySelectorAll('#rangeFilterBar .filter-btn');
@@ -46,7 +105,6 @@ const tagFilterBtns = document.querySelectorAll('#tagFilterBar .filter-btn');
 const resultsDiv = document.getElementById('results');
 const resultCount = document.getElementById('resultCount');
 
-// JSONデータの読み込み（キャッシュ無効化 ＋ エラー画面表示付き）
 fetch('errors.json', { cache: 'no-store' })
   .then(response => {
     if (!response.ok) {
@@ -68,13 +126,11 @@ fetch('errors.json', { cache: 'no-store' })
     `;
   });
 
-// 検索窓の入力イベント
 searchInput.addEventListener('input', () => {
   toggleClearButton();
   updateView();
 });
 
-// クリアボタンのクリックイベント
 clearBtn.addEventListener('click', () => {
   searchInput.value = '';
   toggleClearButton();
@@ -90,7 +146,6 @@ function toggleClearButton() {
   }
 }
 
-// 複数選択トグルの共通セットアップ関数
 function setupMultiFilter(buttons, attrName, selectedSet) {
   buttons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -123,7 +178,6 @@ function setupMultiFilter(buttons, attrName, selectedSet) {
 setupMultiFilter(rangeFilterBtns, 'data-range', selectedRanges);
 setupMultiFilter(tagFilterBtns, 'data-tag', selectedTags);
 
-// 部位・部品タグの判定ロジック
 function matchesTagFilter(item, fullTextNormalized) {
   if (selectedTags.size === 0) return true;
 
@@ -139,7 +193,6 @@ function matchesTagFilter(item, fullTextNormalized) {
   return false;
 }
 
-// 絞り込みと描画の統合処理
 function updateView() {
   const rawInput = searchInput.value;
   const terms = rawInput
