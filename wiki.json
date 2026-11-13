@@ -1,90 +1,224 @@
-[
-  {
-    "id": "syscon-uart",
-    "title": "Syscon 診断モード・UART接続と基本コマンド",
-    "sourceTitle": "PS3 Developer Wiki - Syscon",
-    "sourceUrl": "https://www.psdevwiki.com/ps3/Syscon",
-    "lastUpdated": "2026-11-13",
-    "licenseNote": "この記事は PS3 Developer Wiki の技術情報をベースに日本語へ翻訳・再構成したものです（GFDL 1.2 準拠）。",
-    "lead": "PS3のシステムコントローラ（Syscon）にUSB-TTL（UART）アダプタを接続し、エラーログの読み出しやファン制御テストを行うためのリファレンスです。",
-    "sections": [
-      {
-        "heading": "1. UART接続の基本仕様（シリアル通信設定）",
-        "paragraphs": [
-          "Sysconとの通信には 3.3V ロジックレベルの USB-TTL シリアル変換アダプタ（FT232RL や CP2102 など）を使用します。5V電圧を印加するとSysconが破損するため必ず 3.3V を使用してください。",
-          "基板上のハンダ付けポイントは、大きく分けて「Mullion（初期型：COK-001/002〜DIA-002等）」と「Sherwood（後期Slim/SuperSlim：DYN-001以降）」で異なり、Mullion基板では DIAG ピンを GND に落とす必要があります。"
-        ],
-        "table": {
-          "headers": ["設定項目", "値", "備考"],
+{
+  "sourceTitle": "PS3 Developer Wiki - Main Page (Console Information / Components)",
+  "sourceUrl": "https://www.psdevwiki.com/ps3/",
+  "lastUpdated": "2026-11-13",
+  "navboxes": [
+    {
+      "id": "console-info",
+      "title": "Console Information（本体モデル情報）",
+      "originalTitle": "Console Information",
+      "groups": [
+        {
+          "category": "Retail",
+          "categoryJa": "市販モデル",
           "rows": [
-            ["ボーレート (Baud Rate)", "57600", "Mullion / Sherwood 共通"],
-            ["データビット", "8 bit", "標準設定"],
-            ["パリティ", "None (なし)", "標準設定"],
-            ["ストップビット", "1 bit", "標準設定"],
-            ["フロー制御", "None (なし)", "XON/XOFF や RTS/CTS はオフ"]
+            {
+              "label": "Fat (nand)",
+              "items": [
+                { "name": "CECHAxx", "wikiSlug": "CECHAxx", "note": "初期型・PS2ハードウェア互換 (EE+GS) / COK-001" },
+                { "name": "CECHBxx", "wikiSlug": "CECHBxx", "note": "初期型20GB・Wi-Fi非搭載 / COK-001" },
+                { "name": "CECHCxx", "wikiSlug": "CECHCxx", "note": "欧州版・PS2半ソフト互換 (GSのみ) / COK-002" },
+                { "name": "CECHExx", "wikiSlug": "CECHExx", "note": "北米80GB・PS2半ソフト互換 (GSのみ) / COK-002" },
+                { "name": "CECHGxx", "wikiSlug": "CECHGxx", "note": "PS2互換廃止・NAND最終モデル / SEM-001" }
+              ]
+            },
+            {
+              "label": "Fat (nor)",
+              "items": [
+                { "name": "CECHHxx", "wikiSlug": "CECHHxx", "note": "NORフラッシュ移行・90nm RSX / DIA-001" },
+                { "name": "CECHJxx", "wikiSlug": "CECHJxx", "note": "65nm RSX移行モデル / DIA-002" },
+                { "name": "CECHKxx", "wikiSlug": "CECHKxx", "note": "65nm RSX / DIA-002" },
+                { "name": "CECHLxx", "wikiSlug": "CECHLxx", "note": "65nm RSX / VER-001" },
+                { "name": "CECHMxx", "wikiSlug": "CECHMxx", "note": "65nm RSX / VER-001" },
+                { "name": "CECHPxx", "wikiSlug": "CECHPxx", "note": "65nm RSX / VER-001" },
+                { "name": "CECHQxx", "wikiSlug": "CECHQxx", "note": "FF7AC限定モデル / VER-001" }
+              ]
+            },
+            {
+              "label": "Slim (nor)",
+              "items": [
+                { "name": "CECH-20xx", "wikiSlug": "CECH-20xx", "note": "初代Slim・65nm RSX / DYN-001" },
+                { "name": "CECH-21xx", "wikiSlug": "CECH-21xx", "note": "40nm RSX移行モデル / SUR-001" },
+                { "name": "CECH-25xx", "wikiSlug": "CECH-25xx", "note": "NEC/TOKIN廃止・BDドーターボード統合 / JTP-001, JSD-001" },
+                { "name": "CECH-30xx", "wikiSlug": "CECH-30xx", "note": "後期Slim・CFW非対応 / KTE-001" }
+              ]
+            },
+            {
+              "label": "Super Slim (nor/eMMC)",
+              "items": [
+                { "name": "CECH-40xx", "wikiSlug": "CECH-40xx", "note": "初代Super Slim / MSX-001, MPX-001" },
+                { "name": "CECH-42xx", "wikiSlug": "CECH-42xx", "note": "中期Super Slim / NPX-001, PPX-001, PQX-001" },
+                { "name": "CECH-43xx", "wikiSlug": "CECH-43xx", "note": "最終Super Slim (28nm RSX) / RTX-001, REX-001" }
+              ]
+            }
           ]
         }
-      },
-      {
-        "heading": "2. 代表的な Syscon 診断コマンド一覧",
-        "paragraphs": [
-          "Mullion基板（初期型）の内部診断モードでよく使用する基本コマンドです。認証（AUTH）を通過した後に実行します。"
-        ],
-        "table": {
-          "headers": ["コマンド", "機能・用途", "補足"],
+      ]
+    },
+    {
+      "id": "console-components",
+      "title": "Console Components（本体構成部品）",
+      "originalTitle": "Console Components",
+      "groups": [
+        {
+          "category": "Motherboards",
+          "subCategory": "Retail",
           "rows": [
-            ["errlog", "エラーログ履歴の表示", "最新から最大32件のエラーコードと発生時刻を出力"],
-            ["clearerrlog", "エラーログの消去", "修理後の動作確認前に履歴をリセットする際に使用"],
-            ["bringup", "起動シーケンスの実行", "電源投入テストを行い、どの段階で停止するか確認"],
-            ["shutdown", "システムのシャットダウン", "bringup 後の電源オフに使用"],
-            ["tmp get 0 / tmp get 1", "温度センサー値の取得", "0 が CELL、1 が RSX の現在温度を取得"],
-            ["fantbl get 0", "ファン制御テーブルの確認", "現在の温度・PWM設定値テーブルを読み出し"]
+            {
+              "label": "Fat (nand)",
+              "items": [
+                { "name": "COK-001", "wikiSlug": "COK-001", "note": "90nm CELL + 90nm RSX + EE+GS / NEC/TOKIN 8個" },
+                { "name": "COK-002", "wikiSlug": "COK-002", "note": "90nm CELL + 90nm RSX + GS / NEC/TOKIN 8個" },
+                { "name": "COK-002W", "wikiSlug": "COK-002W" },
+                { "name": "SEM-001", "wikiSlug": "SEM-001", "note": "65nm CELL + 90nm RSX / NEC/TOKIN 8個" }
+              ]
+            },
+            {
+              "label": "Fat (nor)",
+              "items": [
+                { "name": "DIA-001", "wikiSlug": "DIA-001", "note": "65nm CELL + 90nm RSX / NEC/TOKIN 8個" },
+                { "name": "DIA-002", "wikiSlug": "DIA-002", "note": "65nm CELL + 65nm RSX / NEC/TOKIN 8個" },
+                { "name": "VER-001", "wikiSlug": "VER-001", "note": "65nm CELL + 65nm RSX / NEC/TOKIN 8個" }
+              ]
+            },
+            {
+              "label": "Slim (nor)",
+              "items": [
+                { "name": "DYN-001", "wikiSlug": "DYN-001", "note": "45nm CELL + 65nm RSX / NEC/TOKIN 6個" },
+                { "name": "SUR-001", "wikiSlug": "SUR-001", "note": "45nm CELL + 40nm RSX / CELL側のみNEC/TOKIN" },
+                { "name": "JTP-001", "wikiSlug": "JTP-001", "note": "45nm CELL + 40nm RSX / タンタル化" },
+                { "name": "JSD-001", "wikiSlug": "JSD-001" },
+                { "name": "KTE-001", "wikiSlug": "KTE-001" }
+              ]
+            },
+            {
+              "label": "Super Slim (nor/eMMC)",
+              "items": [
+                { "name": "MSX-001", "wikiSlug": "MSX-001" },
+                { "name": "MPX-001", "wikiSlug": "MPX-001" },
+                { "name": "NPX-001", "wikiSlug": "NPX-001" },
+                { "name": "PPX-001", "wikiSlug": "PPX-001" },
+                { "name": "PQX-001", "wikiSlug": "PQX-001" },
+                { "name": "RTX-001", "wikiSlug": "RTX-001" },
+                { "name": "REX-001", "wikiSlug": "REX-001" }
+              ]
+            }
           ]
         },
-        "warning": "eepcsum や w（EEPROM書き込み）コマンドはチェックサム不整合を起こすと起動不能（ブリック）になります。読み出し系コマンド以外を実行する前は必ずダンプを取得してください。"
-      }
-    ]
-  },
-  {
-    "id": "board-revisions",
-    "title": "基板リビジョン別・RSXプロセスとプロードライザ一覧",
-    "sourceTitle": "PS3 Developer Wiki - Motherboard Revisions",
-    "sourceUrl": "https://www.psdevwiki.com/ps3/Motherboard_Revisions",
-    "lastUpdated": "2026-11-13",
-    "licenseNote": "この記事は PS3 Developer Wiki の基板データベースをもとに日本語化したリファレンスです（GFDL 1.2 準拠）。",
-    "lead": "本体型番（CECH-〇〇）ごとのメイン基板リビジョン、搭載RSXの製造プロセス、およびNEC/TOKINプロードライザの搭載個数一覧です。",
-    "sections": [
-      {
-        "heading": "1. 初期型（Fat）基板リビジョン一覧",
-        "paragraphs": [
-          "COK-001 および COK-002 は PS2 ハードウェア互換機能（EE+GS または GS）を搭載したモデルで、90nm RSX のバンプ劣化（3034）と NEC/TOKIN の容量抜け（1001/1002）の双方が発生しやすい世代です。"
-        ],
-        "table": {
-          "headers": ["基板名", "主な型番", "CELL / RSX", "NEC/TOKIN搭載数", "Syscon種別"],
+        {
+          "category": "Bluray Drive",
           "rows": [
-            ["COK-001", "CECHA / CECHB", "90nm / 90nm", "計8個 (CELL表2裏2 / RSX表2裏2)", "Mullion"],
-            ["COK-002", "CECHC / CECHE", "90nm / 90nm", "計8個 (CELL表2裏2 / RSX表2裏2)", "Mullion"],
-            ["SEM-001", "CECHG", "65nm / 90nm", "計8個 (CELL表2裏2 / RSX表2裏2)", "Mullion"],
-            ["DIA-001", "CECHH", "65nm / 90nm", "計8個 (CELL表2裏2 / RSX表2裏2)", "Mullion"],
-            ["DIA-002", "CECHJ / CECHK / CECHL", "65nm / 65nm", "計8個 (CELL表2裏2 / RSX表2裏2)", "Mullion"],
-            ["VER-001", "CECHM / CECHP / CECHQ", "65nm / 65nm", "計8個 (CELL表2裏2 / RSX表2裏2)", "Mullion"]
+            {
+              "label": "Drive",
+              "items": [
+                { "name": "BD-400", "wikiSlug": "BD-400" },
+                { "name": "BD-410", "wikiSlug": "BD-410" },
+                { "name": "BD-450", "wikiSlug": "BD-450" },
+                { "name": "BD-460", "wikiSlug": "BD-460" },
+                { "name": "BD-470", "wikiSlug": "BD-470" }
+              ]
+            },
+            {
+              "label": "Laser",
+              "items": [
+                { "name": "KES-400A", "wikiSlug": "KES-400A", "note": "初期シングルレンズピックアップ" },
+                { "name": "KES-410A", "wikiSlug": "KES-410A", "note": "2レンズピックアップ（BD/DVD分離）" },
+                { "name": "KES-450A", "wikiSlug": "KES-450A" },
+                { "name": "KES-450D", "wikiSlug": "KES-450D" },
+                { "name": "KES-450E", "wikiSlug": "KES-450E" },
+                { "name": "KES-460A", "wikiSlug": "KES-460A" },
+                { "name": "KES-470A", "wikiSlug": "KES-470A" },
+                { "name": "KES-850A", "wikiSlug": "KES-850A" },
+                { "name": "KES-451A", "wikiSlug": "KES-451A" },
+                { "name": "KES-495A", "wikiSlug": "KES-495A" }
+              ]
+            },
+            {
+              "label": "Slide",
+              "items": [
+                { "name": "KEM-400AAA", "wikiSlug": "KEM-400AAA" },
+                { "name": "KEM-410ACA", "wikiSlug": "KEM-410ACA" },
+                { "name": "KEM-450AAA", "wikiSlug": "KEM-450AAA" },
+                { "name": "KEM-450DAA", "wikiSlug": "KEM-450DAA" },
+                { "name": "KEM-450EAA", "wikiSlug": "KEM-450EAA" },
+                { "name": "KEM-480AAA", "wikiSlug": "KEM-480AAA" },
+                { "name": "KEM-850", "wikiSlug": "KEM-850" },
+                { "name": "KEM-451AAA", "wikiSlug": "KEM-451AAA" },
+                { "name": "KEM-495AAA", "wikiSlug": "KEM-495AAA" }
+              ]
+            },
+            {
+              "label": "BD Daughterboards",
+              "items": [
+                { "name": "BMD-001", "wikiSlug": "BMD-001" },
+                { "name": "BMD-002", "wikiSlug": "BMD-002" },
+                { "name": "BMD-003", "wikiSlug": "BMD-003" },
+                { "name": "BMD-004", "wikiSlug": "BMD-004" },
+                { "name": "BMD-006", "wikiSlug": "BMD-006" },
+                { "name": "BMD-011", "wikiSlug": "BMD-011" },
+                { "name": "BMD-021", "wikiSlug": "BMD-021" },
+                { "name": "BMD-031", "wikiSlug": "BMD-031" },
+                { "name": "BMD-051", "wikiSlug": "BMD-051" },
+                { "name": "BMD-061", "wikiSlug": "BMD-061" },
+                { "name": "BMD-065", "wikiSlug": "BMD-065" }
+              ]
+            }
+          ]
+        },
+        {
+          "category": "Power Supply",
+          "rows": [
+            {
+              "label": "Sony",
+              "items": [
+                { "name": "APS-226", "wikiSlug": "APS-226", "note": "初期型メタル筐体電源（発熱が少なめで人気）" },
+                { "name": "APS-227", "wikiSlug": "APS-227", "note": "220-240V専用版" },
+                { "name": "APS-231", "wikiSlug": "APS-231", "note": "初期型プラスチック筐体電源" },
+                { "name": "APS-239", "wikiSlug": "APS-239" },
+                { "name": "APS-240", "wikiSlug": "APS-240" },
+                { "name": "APS-250", "wikiSlug": "APS-250" },
+                { "name": "APS-270", "wikiSlug": "APS-270" },
+                { "name": "APS-306", "wikiSlug": "APS-306" },
+                { "name": "APS-330", "wikiSlug": "APS-330" },
+                { "name": "APS-330/B", "wikiSlug": "APS-330/B", "redLink": true }
+              ]
+            },
+            {
+              "label": "Delta",
+              "items": [
+                { "name": "EADP-300AB", "wikiSlug": "EADP-300AB" },
+                { "name": "EADP-260AB", "wikiSlug": "EADP-260AB" },
+                { "name": "EADP-260BB", "wikiSlug": "EADP-260BB" },
+                { "name": "EADP-220BB", "wikiSlug": "EADP-220BB" },
+                { "name": "EADP-200DB", "wikiSlug": "EADP-200DB" },
+                { "name": "EADP-185AB", "wikiSlug": "EADP-185AB" },
+                { "name": "ADP-160AR", "wikiSlug": "ADP-160AR" }
+              ]
+            },
+            {
+              "label": "Panasonic",
+              "items": [
+                { "name": "LSEB1226A1", "wikiSlug": "LSEB1226A1" },
+                { "name": "LSEB1226B1", "wikiSlug": "LSEB1226B1" },
+                { "name": "LSEB1254A1", "wikiSlug": "LSEB1254A1" }
+              ]
+            },
+            {
+              "label": "Nichicon",
+              "items": [
+                { "name": "ZSSR539IA", "wikiSlug": "ZSSR539IA" },
+                { "name": "ZSSR541iB", "wikiSlug": "ZSSR541iB" }
+              ]
+            },
+            {
+              "label": "Chicony",
+              "items": [
+                { "name": "N12-160P1A", "wikiSlug": "N12-160P1A" }
+              ]
+            }
           ]
         }
-      },
-      {
-        "heading": "2. 薄型（Slim）初期〜中期基板",
-        "paragraphs": [
-          "DYN-001 は 45nm CELL と 65nm RSX を搭載しており、引き続き NEC/TOKIN プロードライザが採用されています。SUR-001 以降は RSX が 40nm へ微細化され、プロードライザもタンタルコンデンサへ段階的に置き換わっています。"
-        ],
-        "table": {
-          "headers": ["基板名", "主な型番", "CELL / RSX", "NEC/TOKIN搭載数", "Syscon種別"],
-          "rows": [
-            ["DYN-001", "CECH-2000A / B", "45nm / 65nm", "計6個 (CELL表1裏2 / RSX表1裏2)", "Sherwood"],
-            ["SUR-001", "CECH-2100A / B", "45nm / 40nm", "CELL側のみ搭載（RSX側はタンタル化）", "Sherwood"],
-            ["JTP-001 / JSD-001", "CECH-2500A / B", "45nm / 40nm", "廃止（すべてタンタル/積層セラミック）", "Sherwood"]
-          ]
-        }
-      }
-    ]
-  }
-]
+      ]
+    }
+  ]
+}

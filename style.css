@@ -1027,3 +1027,189 @@ a.tool-link-card:hover {
     font-size: 1.15rem;
   }
 }
+/* ==========================================
+   本家 PS3 Dev Wiki 風 Navbox テーブル再現スタイル
+   ========================================== */
+.psdev-navbox {
+  border: 1px solid #a2a9b1;
+  background-color: #fdfdfd;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+[data-theme="dark"] .psdev-navbox {
+  border-color: #3f3f5a;
+  background-color: #181820;
+}
+
+.psdev-navbox-header {
+  background-color: #ccccff;
+  color: #202122;
+  padding: 8px 12px;
+  font-weight: bold;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #a2a9b1;
+}
+
+[data-theme="dark"] .psdev-navbox-header {
+  background-color: #2c2c54;
+  color: #e0e0ff;
+  border-bottom-color: #3f3f5a;
+}
+
+.psdev-ve-links {
+  font-size: 0.78rem;
+  font-weight: normal;
+  color: #0645ad;
+}
+
+[data-theme="dark"] .psdev-ve-links {
+  color: #8ab4f8;
+}
+
+.psdev-navbox-title {
+  text-align: center;
+  flex: 1;
+}
+
+.psdev-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.psdev-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.psdev-table th,
+.psdev-table td {
+  border: 1px solid #dcdce8;
+  padding: 6px 10px;
+  vertical-align: middle;
+}
+
+[data-theme="dark"] .psdev-table th,
+[data-theme="dark"] .psdev-table td {
+  border-color: #2f2f42;
+}
+
+/* 左端の大カテゴリ（Retail / Motherboards / Bluray Drive / Power Supply） */
+.psdev-cat-cell {
+  background-color: #ddddff;
+  color: #0645ad;
+  font-weight: bold;
+  text-align: center;
+  white-space: nowrap;
+  width: 120px;
+}
+
+[data-theme="dark"] .psdev-cat-cell {
+  background-color: #242442;
+  color: #93b4ff;
+}
+
+/* 中間カテゴリ（Motherboards 内の Retail など） */
+.psdev-subcat-cell {
+  background-color: #e6e6ff;
+  color: #0645ad;
+  font-weight: bold;
+  text-align: center;
+  white-space: nowrap;
+  width: 80px;
+}
+
+[data-theme="dark"] .psdev-subcat-cell {
+  background-color: #202038;
+  color: #93b4ff;
+}
+
+/* 行ラベル（Fat (nand) / Sony / Laser など） */
+.psdev-row-label {
+  background-color: #eeeeff;
+  color: #111111;
+  font-weight: bold;
+  text-align: right;
+  white-space: nowrap;
+  width: 165px;
+}
+
+[data-theme="dark"] .psdev-row-label {
+  background-color: #1d1d30;
+  color: #e5e7eb;
+}
+
+/* 右側の型番リストセル */
+.psdev-items-cell {
+  background-color: #ffffff;
+  line-height: 1.75;
+}
+
+[data-theme="dark"] .psdev-items-cell {
+  background-color: #18181f;
+}
+
+.psdev-item-link {
+  color: #0645ad;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+
+.psdev-item-link:hover {
+  text-decoration: underline;
+  background-color: rgba(6, 69, 173, 0.08);
+}
+
+.psdev-item-link.has-note {
+  font-weight: bold;
+}
+
+.psdev-item-link.red-link {
+  color: #ba0000;
+}
+
+[data-theme="dark"] .psdev-item-link {
+  color: #6ea8fe;
+}
+
+[data-theme="dark"] .psdev-item-link.red-link {
+  color: #ff7b7b;
+}
+
+.psdev-dot {
+  margin: 0 5px;
+  color: #555555;
+  user-select: none;
+}
+
+[data-theme="dark"] .psdev-dot {
+  color: #888888;
+}
+
+/* 選択した項目の簡易メモ表示バー */
+.psdev-note-banner {
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--link-color);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.psdev-note-banner.hidden {
+  display: none;
+}

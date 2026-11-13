@@ -545,3 +545,140 @@ function renderWikiArticle(articleId) {
     </article>
   `;
 }
+// ==========================================
+// 本家 PS3 Dev Wiki 風 Navbox 描画（上書き拡張）
+// ==========================================
+if (wikiArticleTabs && wikiArticleContainer) {
+  fetch('wiki.json', { cache: 'no-store' })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTPエラー (${response.status}): wiki.json が見つかりません`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (!data || !data.navboxes) return;
+      renderPsdevWikiPage(data);
+    })
+    .catch(err => {
+      wikiArticleContainer.innerHTML = `
+        <div class="warning-box">
+          <strong>Wikiデータの読み込みに失敗しました（wiki.json の書式を確認してください）</strong><br>
+          詳細: ${err.message}
+        </div>
+      `;
+    });
+}
+
+function renderPsdevWikiPage(data) {
+  // 上部タブバーは非表示（本家同様の縦並びNavbox構成にするため）
+  wikiArticleTabs.style.display = 'none';
+
+  const navboxesHtml = data.navboxes.map(box => {
+    const groupsRowsHtml = box.groups.map(group => {
+      const rowCount = group.rows.length;
+
+      return group.rows.map((row, idx) => {
+        // 1行目だけ縦結合（rowspan）のカテゴリセルを出力
+        let catCells = '';
+        if (idx === 0) {
+          if (group.subCategory) {
+            catCells = `
+              <th class="psdev-cat-cell" rowspan="${rowCount}">${group.category}</th>
+              <th class="psdev-subcat-cell" rowspan="${rowCount}">${group.subCategory}</th>
+            `;
+          } else {
+            catCells = `
+              <th class="psdev-cat-cell" colspan="2" rowspan="${rowCount}">${group.category}</th>
+            `;
+          }
+        }
+
+        // 各型番・部品リンクを「・」区切りで連結
+        const itemsHtml = row.items.map(item => {
+          const hasNoteClass = item.note ? 'has-note' : '';
+          const redLinkClass = item.redLink ? 'red-link' : '';
+          const wikiUrl = `https://www.psdevwiki.com/ps3/${encodeURIComponent(item.wikiSlug)}`;
+          const noteAttr = item.note ? `data-note="${item.note.replace(/"/g, '&quot;')}"` : '';
+
+          return `<a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" class="psdev-item-link ${hasNoteClass} ${redLinkClass}" data-item-name="${item.name}" ${noteAttr}>${item.name}</a>`;
+        }).join('<span class="psdev-dot">•</span>');
+
+        return `
+          <tr>
+            ${catCells}
+            <th class="psdev-row-label">${row.label}</th>
+            <td class="psdev-items-cell">${itemsHtml}</td>
+          </tr>
+        `;
+      }).join('');
+    }).join('');
+
+    return `
+      <div class="psdev-navbox">
+        <div class="psdev-navbox-header">
+          <span class="psdev-ve-links">v • e</span>
+          <span class="psdev-navbox-title">${box.originalTitle}</span>
+          <span style="width: 24px;"></span>
+        </div>
+        <div class="psdev-table-wrap">
+          <table class="psdev-table">
+            <tbody>
+              ${groupsRowsHtml}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  wikiArticleContainer.innerHTML = `
+    <div class="wiki-meta-box">
+      <strong>出典元:</strong> <a href="${data.sourceUrl}" target="_blank" rel="noopener noreferrer" class="wrap-link">${data.sourceTitle}</a><br>
+      <strong>最終更新:</strong> ${data.lastUpdated} ／ <strong>ライセンス:</strong> <a href="https://www.gnu.org/licenses/old-licenses/fdl-1.2.html" target="_blank" rel="noopener noreferrer" class="wrap-link">GNU Free Documentation License 1.2 (GFDL 1.2)</a><br>
+      ※ 太字の型番・基板名にカーソルを合わせる（スマホではタップする）と日本語の簡易メモが表示され、クリックすると本家 PS3 Developer Wiki の該当ページが開きます。
+    </div>
+
+    <div id="psdevNoteBanner" class="psdev-note-banner hidden">
+      <div id="psdevNoteText"></div>
+      <a id="psdevNoteExtLink" href="#" target="_blank" rel="noopener noreferrer" class="copy-btn" style="text-decoration:none;">本家Wikiを開く ↗</a>
+    </div>
+
+    ${navboxesHtml}
+
+    <div class="wiki-license-footer">
+      本ページの構成・データは <a href="${data.sourceUrl}" target="_blank" rel="noopener noreferrer" class="wrap-link">${data.sourceTitle}</a> をベースに作成しており、<a href="https://www.gnu.org/licenses/old-licenses/fdl-1.2.html" target="_blank" rel="noopener noreferrer" class="wrap-link">GNU Free Documentation License 1.2</a> の条件のもとで提供されます。
+    </div>
+  `;
+
+  // ホバー（PC）およびタップ（スマホ）で日本語メモを表示
+  const noteBanner = document.getElementById('psdevNoteBanner');
+  const noteText = document.getElementById('psdevNoteText');
+  const noteExtLink = document.getElementById('psdevNoteExtLink');
+
+  wikiArticleContainer.querySelectorAll('.psdev-item-link').forEach(link => {
+    const showNote = () => {
+      const name = link.getAttribute('data-item-name');
+      const note = link.getAttribute('data-note');
+      const href = link.getAttribute('href');
+      if (note) {
+        noteText.innerHTML = `<strong>【${name}】</strong> ${note}`;
+        noteExtLink.href = href;
+        noteBanner.classList.remove('hidden');
+      }
+    };
+
+    link.addEventListener('mouseenter', showNote);
+    link.addEventListener('click', (e) => {
+      // スマホ等でメモ付きの項目を1回目にタップした時はまずメモを表示し、2回目または右上のボタンで外部Wikiへ飛ぶ
+      if (link.hasAttribute('data-note') && window.innerWidth <= 768) {
+        const currentShown = noteBanner.getAttribute('data-current');
+        if (currentShown !== link.getAttribute('data-item-name')) {
+          e.preventDefault();
+          noteBanner.setAttribute('data-current', link.getAttribute('data-item-name'));
+          showNote();
+        }
+      }
+    });
+  });
+}
