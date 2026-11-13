@@ -93,6 +93,6 @@
     "severityLabel": "重症度: 高（重度/BGA・内部）",
     "summary": "主にRSXとCELL間の通信エラー（FlexIO / BGA不良）",
     "cause": "90nm RSX搭載機は、多くの場合アンダーフィル・バンプ劣化（いわゆるYLODの主因）、またはRSX/CELLのBGAハンダクラック。ただし、RSXが原因ではない場合もあります。",
-    "solution": "40nmまたは65nm RSXへの換装（Frankenstein MOD）を行う。ヒートガン等によるリフローは一時的に回復することはあるが、再発しやすい。"
+    "solution": "RSXが原因の場合、根本的な解決は40nmまたは65nm RSXへの換装（Frankenstein MOD）を行う。ヒートガン等によるリフローは一時的に回復することはあるが、再発しやすい。"
   }
 ]
