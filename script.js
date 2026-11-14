@@ -1561,3 +1561,30 @@ const ENABLE_AUTO_FAN_CURVE = true;
     });
   }
 })();
+// ==========================================
+// 上級者限定ページへのURL直接アクセス保護 ＆ 解除時の自動退避
+// ==========================================
+(function protectExpertViews() {
+  const EXPERT_VIEWS = ['syscon-internal'];
+
+  function enforceExpertViewGuard() {
+    const currentHash = window.location.hash.replace('#', '');
+    const isExpert = document.documentElement.getAttribute('data-expert-mode') === 'true';
+    if (EXPERT_VIEWS.includes(currentHash) && !isExpert) {
+      window.location.hash = '#home';
+    }
+  }
+
+  window.addEventListener('hashchange', enforceExpertViewGuard);
+  enforceExpertViewGuard();
+
+  const disableBtn = document.getElementById('disableExpertBtn');
+  if (disableBtn) {
+    disableBtn.addEventListener('click', () => {
+      const currentHash = window.location.hash.replace('#', '');
+      if (EXPERT_VIEWS.includes(currentHash)) {
+        window.location.hash = '#home';
+      }
+    });
+  }
+})();

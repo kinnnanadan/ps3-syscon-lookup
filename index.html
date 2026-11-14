@@ -39,6 +39,9 @@
         <a href="#references" class="nav-item" data-view="references">
           <span class="nav-icon">📚</span> 参考資料・ライセンス
         </a>
+        <a href="#syscon-internal" class="nav-item expert-only" data-view="syscon-internal">
+          <span class="nav-icon">🔌</span> Syscon 内部モード
+        </a>
 
         <div class="nav-section-title">解析・修理ツール</div>
         <a href="#search" class="nav-item" data-view="search">
@@ -198,6 +201,165 @@
             </ul>
           </div>
         </section>
+
+      <!-- ==========================================
+             画面: Syscon 内部モード解説 (#syscon-internal) ※上級者モード限定
+             ========================================== -->
+        <section id="view-syscon-internal" class="page-view">
+          <div class="page-header">
+            <h1>🔌 Syscon 内部モード（Internal Mode）解析ガイド</h1>
+            <p class="site-description">
+              UART接続による Syscon 内部診断モードへの移行手順、認証（AUTH）仕様、および内部コマンドのリファレンスです。
+            </p>
+          </div>
+
+          <div class="disclaimer-box" role="note">
+            <strong>【警告・上級者向け情報】ブリック（起動不能）の危険性について</strong><br>
+            Syscon の内部モードでは、EEPROM の書き換え（<code>w</code>）やチェックサム変更、パッチ適用など、ハードウェア動作の根幹に関わる操作が可能です。<strong>誤ったアドレスへの書き込みやチェックサム不整合を起こすと、PS3本体が完全に起動不能（ブリック）になります。</strong><br>
+            作業前には必ず EEPROM ダンプのバックアップを取得し、すべて自己責任にて実行してください。
+          </div>
+
+          <div class="readme-card" style="margin-bottom: 16px;">
+            <h2>1. 外部モード（External）と内部モード（Internal）の違い</h2>
+            <p>
+              PS3 のシステムコントローラ（Syscon）の UART インターフェースには、アクセス権限の異なる2つのモードが存在します。
+            </p>
+            <div class="table-wrapper" style="margin-top: 10px;">
+              <table class="ref-table">
+                <thead>
+                  <tr>
+                    <th>モード種別</th>
+                    <th>対象基板</th>
+                    <th>概要・できること</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="mono">外部モード<br>(External)</td>
+                    <td>Mullion / Sherwood 共通</td>
+                    <td>通常のUART接続時の初期状態。機能は大きく制限されており、<code>AUTH</code> コマンドによるチャレンジ＆レスポンス認証を通過しないとエラーログ閲覧や起動テストが行えません。</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">内部モード<br>(Internal)</td>
+                    <td>Mullion 系<br>(COK-001 〜 VER-001)</td>
+                    <td>Syscon の特定コマンド（<code>eepcsum</code>、<code>r</code> / <code>w</code> によるEEPROM直接読み書き、<code>fantbl</code> による熱制御テーブル編集など）が解放された開発・工場診断用モードです。</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="readme-card" style="margin-bottom: 16px;">
+            <h2>2. ハードウェア接続と通信仕様（UART）</h2>
+            <p>
+              PCとマザーボード上の Syscon テストポイントを USB-TTL シリアル変換アダプタで接続します。
+            </p>
+            <ul class="changelog-list">
+              <li><strong>ロジック電圧:</strong> 必ず <strong>3.3V TTL</strong> を使用してください（5V を入力すると Syscon IC が即座に破損します）。</li>
+              <li><strong>配線:</strong> 基板の <code>TX</code> ↔ アダプタの <code>RX</code>、基板の <code>RX</code> ↔ アダプタの <code>TX</code>、および <code>GND</code> 同士を接続します（3.3V電源ラインは通常接続不要です）。</li>
+              <li><strong>DIAG ピン（Mullion のみ）:</strong> 内部モードを有効化・アクセスする際は、基板上の <code>DIAG</code> ランドを <code>GND</code> に落とした（ショートさせた）状態で主電源スイッチをONにします。</li>
+            </ul>
+
+            <div class="table-wrapper" style="margin-top: 12px;">
+              <table class="ref-table">
+                <thead>
+                  <tr>
+                    <th>シリアル通信設定</th>
+                    <th>設定値</th>
+                    <th>備考</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="mono">ボーレート (Baud Rate)</td>
+                    <td class="mono">57600</td>
+                    <td>全リビジョン共通（初期の接続確認時は 115200 になる場合あり）</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">データ / パリティ / ストップ</td>
+                    <td class="mono">8bit / None / 1bit</td>
+                    <td>一般的な 8N1 設定</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">フロー制御</td>
+                    <td class="mono">None（なし）</td>
+                    <td>XON/XOFF・RTS/CTS ともに無効</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="readme-card">
+            <h2>3. 代表的な内部モード用コマンド一覧</h2>
+            <p>
+              <code>ps3-syscon-uart</code> 等のスクリプトで <code>AUTH</code> 認証を通過した後に使用できる主なコマンドです。
+            </p>
+            <div class="table-wrapper" style="margin-top: 10px;">
+              <table class="ref-table">
+                <thead>
+                  <tr>
+                    <th>コマンド</th>
+                    <th>用途・機能</th>
+                    <th>危険度・注意点</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="mono">errlog</td>
+                    <td>エラーログ履歴の表示（最大32件）</td>
+                    <td>安全（読み取り専用）</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">clearerrlog</td>
+                    <td>エラーログ履歴の消去</td>
+                    <td>修理後の動作確認前に使用</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">bringup</td>
+                    <td>電源投入シーケンスの実行</td>
+                    <td>YLOD発生タイミング・エラー特定に使用</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">shutdown</td>
+                    <td>システムの電源オフ</td>
+                    <td><code>bringup</code> 後の停止に使用</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">tmp get 0 / 1</td>
+                    <td>現在温度の取得（0: CELL / 1: RSX）</td>
+                    <td>安全（読み取り専用）</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">fantbl get 0 / 1</td>
+                    <td>現在のファン制御テーブル読み出し</td>
+                    <td>変更前のバックアップ記録に必須</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">fantbl setini ...</td>
+                    <td>ファン制御テーブル（p0〜p9）の書き換え</td>
+                    <td><strong>要注意：</strong>書き換え後はチェックサム修正が必要</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">r [addr] [len]</td>
+                    <td>EEPROM / メモリ領域の読み出し</td>
+                    <td>安全（全領域ダンプの取得に使用）</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">w [addr] [data]</td>
+                    <td>EEPROM / メモリ領域への直接書き込み</td>
+                    <td><strong>高危険：</strong>40nm換装パッチ等に利用。アドレス誤り厳禁</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">eepcsum</td>
+                    <td>EEPROM チェックサムの検証・再計算</td>
+                    <td><code>w</code> や <code>fantbl</code> 変更後に不整合がないか確認</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>  
 
         <!-- ==========================================
              画面4: Syscon エラーコード検索 (#search)
