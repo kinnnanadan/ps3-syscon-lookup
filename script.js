@@ -1217,7 +1217,7 @@ function renderInternalWikiArticle(articleKey, fallbackName, extSlug, targetSecI
 // Syscon ファンテーブル（p0〜p9）自動生成ツール
 // ==========================================
 // ▼ この機能をページに表示する場合は true、隠す場合は false に変更してください ▼
-const ENABLE_AUTO_FAN_CURVE = true;
+const ENABLE_AUTO_FAN_CURVE = false;
 
 (function initAutoFanGenerator() {
   const cardEl = document.getElementById('autoFanCard');
