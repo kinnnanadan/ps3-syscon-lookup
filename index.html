@@ -333,6 +333,69 @@
           </div>
 
           <div class="readme-card" style="margin-top: 18px;">
+            <!-- 自動ファンカーブ提案カード -->
+          <div class="readme-card" style="margin-top: 18px;">
+            <h2>🤖 目的・目標温度からファン設定を自動提案</h2>
+            <p class="site-description" style="margin-bottom: 14px;">
+              基板のRSX世代と「冷却重視・静音重視」または「高負荷時の目標上限温度」を選ぶと、Syscon熱制御テーブル（<code>fantbl</code>）やWebMAN制御の目安となる段階別PWM値（% / 16進数）を自動生成します。
+            </p>
+
+            <div class="auto-fan-controls">
+              <div class="auto-control-group">
+                <label class="calc-label">1. 対象モデル・RSX世代</label>
+                <div class="preset-group" id="fanChipGroup" style="margin-bottom: 0;">
+                  <button type="button" class="preset-btn active" data-chip="90nm">初期型 (90nm RSX)</button>
+                  <button type="button" class="preset-btn" data-chip="65nm">中期・Slim初期 (65nm)</button>
+                  <button type="button" class="preset-btn" data-chip="40nm">40nm換装機・後期Slim</button>
+                </div>
+              </div>
+
+              <div class="auto-control-group">
+                <label class="calc-label">2. 運用スタイル（プリセット）</label>
+                <div class="preset-group" id="fanStyleGroup" style="margin-bottom: 0;">
+                  <button type="button" class="preset-btn" data-style="cooling">❄️ 冷却重視</button>
+                  <button type="button" class="preset-btn active" data-style="balanced">⚖️ バランス</button>
+                  <button type="button" class="preset-btn" data-style="quiet">🤫 静音重視</button>
+                </div>
+              </div>
+
+              <div class="auto-control-group">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <label for="targetTempSlider" class="calc-label" style="margin:0;">3. 高負荷時の目標上限温度（微調整可）</label>
+                  <span class="target-temp-badge" id="targetTempDisplay">68 ℃</span>
+                </div>
+                <input type="range" id="targetTempSlider" class="temp-slider" min="58" max="78" step="1" value="68">
+                <div class="slider-scale">
+                  <span>58℃ (超冷却)</span>
+                  <span>68℃ (90nm推奨上限)</span>
+                  <span>78℃ (静音寄り)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="auto-summary-box" id="autoFanSummary"></div>
+
+            <div class="table-wrapper" style="margin-top: 12px;">
+              <table class="ref-table">
+                <thead>
+                  <tr>
+                    <th>Step</th>
+                    <th>動作温度帯 (昇温 / 降温)</th>
+                    <th>ファン速度 (%)</th>
+                    <th>16進数 (0x表記)</th>
+                    <th>10進数</th>
+                    <th>役割</th>
+                  </tr>
+                </thead>
+                <tbody id="autoFanTableBody"></tbody>
+              </table>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px;">
+              <span class="site-description" style="font-size:0.8rem;">※ 実際の到達温度はグリス状態（殻割り有無）・室温・設置環境により前後します。</span>
+              <button type="button" id="copyAutoFanBtn" class="copy-btn">提案テーブルをコピー</button>
+            </div>
+          </div>
             <h2>📊 ファン速度 ⇄ 16進数 早見表</h2>
             <p class="site-description" style="margin-bottom: 12px;">
               計算式: <code>10進数 = 四捨五入(パーセント ÷ 100 × 255)</code> を 16進数へ変換しています。

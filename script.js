@@ -1213,3 +1213,171 @@ function renderInternalWikiArticle(articleKey, fallbackName, extSlug, targetSecI
     }
   }
 }
+// ==========================================
+// ファン設定 自動提案ツール（目的・目標温度別カーブ生成）
+// ==========================================
+(function initAutoFanGenerator() {
+  const chipBtns = document.querySelectorAll('#fanChipGroup .preset-btn');
+  const styleBtns = document.querySelectorAll('#fanStyleGroup .preset-btn');
+  const tempSlider = document.getElementById('targetTempSlider');
+  const tempDisplay = document.getElementById('targetTempDisplay');
+  const summaryBox = document.getElementById('autoFanSummary');
+  const tableBody = document.getElementById('autoFanTableBody');
+  const copyBtn = document.getElementById('copyAutoFanBtn');
+
+  if (!tempSlider || !tableBody) return;
+
+  let selectedChip = '90nm';
+  let selectedStyle = 'balanced';
+
+  // 機種とスタイルに応じた推奨目標温度の基準テーブル
+  const defaultTargets = {
+    '90nm': { cooling: 63, balanced: 67, quiet: 70 },
+    '65nm': { cooling: 65, balanced: 70, quiet: 74 },
+    '40nm': { cooling: 66, balanced: 72, quiet: 76 }
+  };
+
+  function toHex2(pct) {
+    const clamped = Math.max(20, Math.min(100, Math.round(pct)));
+    const dec = Math.round((clamped / 100) * 255);
+    return {
+      pct: clamped,
+      dec,
+      hex: '0x' + dec.toString(16).toUpperCase().padStart(2, '0')
+    };
+  }
+
+  function generateFanCurve() {
+    const targetTemp = parseInt(tempSlider.value, 10);
+    tempDisplay.textContent = `${targetTemp} ℃`;
+
+    // 目標温度が低いほど高いPWMを割り当てる計算ロジック
+    // 基準: targetTemp = 68℃ のとき常用上限付近を 38〜42% 前後に設定
+    const heatOffset = 68 - targetTemp; // 目標温度を1℃下げるごとに +1.6% 補正
+    const chipBaseBoost = selectedChip === '90nm' ? 3 : (selectedChip === '65nm' ? 1 : 0);
+
+    const idlePct = Math.max(20, Math.min(35, Math.round(22 + heatOffset * 0.6 + chipBaseBoost)));
+    const lowLoadPct = Math.max(idlePct + 3, Math.min(45, Math.round(28 + heatOffset * 0.9 + chipBaseBoost)));
+    const midLoadPct = Math.max(lowLoadPct + 4, Math.min(60, Math.round(34 + heatOffset * 1.3 + chipBaseBoost)));
+    const targetLoadPct = Math.max(midLoadPct + 5, Math.min(75, Math.round(42 + heatOffset * 1.6 + chipBaseBoost)));
+    const highLoadPct = Math.max(targetLoadPct + 8, Math.min(88, Math.round(55 + heatOffset * 1.5 + chipBaseBoost)));
+
+    // 温度ステップの算出（目標上限温度 targetTemp を Step 3 の維持ラインに設定）
+    const t1 = Math.max(45, targetTemp - 16);
+    const t2 = Math.max(t1 + 4, targetTemp - 9);
+    const t3 = Math.max(t2 + 4, targetTemp - 3);
+    const t4 = Math.max(t3 + 3, targetTemp + 2);
+    const t5 = Math.max(t4 + 4, targetTemp + 7);
+
+    const steps = [
+      {
+        step: 'Step 0',
+        tempRange: `〜 ${t1}℃ (起動・待機)`,
+        ...toHex2(idlePct),
+        role: 'アイドル・XMB待機時の最低回転'
+      },
+      {
+        step: 'Step 1',
+        tempRange: `${t1}℃ → ${t2}℃ (降温 ${t1 - 3}℃)`,
+        ...toHex2(lowLoadPct),
+        role: '軽負荷（PS1/PS2・動画再生など）'
+      },
+      {
+        step: 'Step 2',
+        tempRange: `${t2}℃ → ${t3}℃ (降温 ${t2 - 3}℃)`,
+        ...toHex2(midLoadPct),
+        role: '通常ゲームプレイ開始時'
+      },
+      {
+        step: 'Step 3',
+        tempRange: `${t3}℃ → ${t4}℃ (降温 ${t3 - 3}℃)`,
+        ...toHex2(targetLoadPct),
+        role: `目標上限（${targetTemp}℃前後）維持の主力回転`
+      },
+      {
+        step: 'Step 4',
+        tempRange: `${t4}℃ → ${t5}℃ (降温 ${t4 - 3}℃)`,
+        ...toHex2(highLoadPct),
+        role: '夏場・高負荷タイトル時の強冷却'
+      },
+      {
+        step: 'Step 5',
+        tempRange: `${t5}℃ 以上 (降温 ${t5 - 4}℃)`,
+        ...toHex2(100),
+        role: '緊急最大冷却（オーバーヒート防止）'
+      }
+    ];
+
+    // 解説コメントの生成
+    let advice = '';
+    if (selectedChip === '90nm' && targetTemp >= 71) {
+      advice = `⚠️ <strong>注意（90nm RSX）:</strong> 90nm世代のRSXは70℃を超えるとアンダーフィル劣化（エラー3034）のリスクが高まります。可能であれば目標温度を <strong>65〜68℃以下</strong> に設定することをおすすめします。`;
+    } else if (selectedChip === '90nm') {
+      advice = `✅ <strong>90nm RSX 保護設定:</strong> 高負荷時でも <strong>${targetTemp}℃前後</strong> に抑えるため、${t2}℃付近から早めに <strong>${steps[2].pct}% (${steps[2].hex}) 〜 ${steps[3].pct}% (${steps[3].hex})</strong> へ立ち上げる構成です。`;
+    } else if (selectedChip === '40nm') {
+      advice = `✅ <strong>40nm RSX 向け設定:</strong> 発熱が少ない40nmプロセス向けにアイドルを <strong>${steps[0].pct}% (${steps[0].hex})</strong> に抑え、高負荷時のみ <strong>${steps[3].pct}% (${steps[3].hex})</strong> 前後で静かに冷やすバランスです。`;
+    } else {
+      advice = `✅ <strong>65nm RSX 向け設定:</strong> アイドル <strong>${steps[0].pct}% (${steps[0].hex})</strong> から負荷に応じて段階的に引き上げ、高負荷時 <strong>${targetTemp}℃前後</strong> を維持する設定です。`;
+    }
+
+    summaryBox.innerHTML = advice;
+
+    tableBody.innerHTML = steps.map(s => `
+      <tr>
+        <td class="mono">${s.step}</td>
+        <td>${s.tempRange}</td>
+        <td class="mono">${s.pct}%</td>
+        <td class="mono">${s.hex}</td>
+        <td class="mono">${s.dec}</td>
+        <td>${s.role}</td>
+      </tr>
+    `).join('');
+
+    // コピー用テキストを保存
+    tableBody.dataset.copyText = [
+      `【PS3 ファン設定提案】対象: ${selectedChip} / 目標上限: ${targetTemp}℃`,
+      ...steps.map(s => `${s.step}: ${s.tempRange} -> ${s.pct}% (${s.hex} / DEC:${s.dec}) [${s.role}]`)
+    ].join('\n');
+  }
+
+  // 機種選択ボタン
+  chipBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      chipBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedChip = btn.getAttribute('data-chip');
+      tempSlider.value = defaultTargets[selectedChip][selectedStyle];
+      generateFanCurve();
+    });
+  });
+
+  // スタイル選択ボタン
+  styleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      styleBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedStyle = btn.getAttribute('data-style');
+      tempSlider.value = defaultTargets[selectedChip][selectedStyle];
+      generateFanCurve();
+    });
+  });
+
+  // スライダー手動操作
+  tempSlider.addEventListener('input', generateFanCurve);
+
+  // テーブルコピーボタン
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      const text = tableBody.dataset.copyText || '';
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = copyBtn.textContent;
+        copyBtn.textContent = 'コピー完了!';
+        setTimeout(() => { copyBtn.textContent = orig; }, 1200);
+      });
+    });
+  }
+
+  // 初回描画
+  generateFanCurve();
+})();
