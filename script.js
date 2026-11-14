@@ -1405,3 +1405,115 @@ const ENABLE_AUTO_FAN_CURVE = true;
 
   generateFanCurve();
 })();
+// ==========================================
+// 上級者モード（シーケンス操作 ＋ 確認ダイアログ）制御
+// ==========================================
+(function initExpertMode() {
+  const rootEl = document.documentElement;
+  const disableBtn = document.getElementById('disableExpertBtn');
+  const autoFanCard = document.getElementById('autoFanCard');
+  const navLinks = document.querySelectorAll('.sidebar-nav .nav-item');
+
+  // CSSの expert-only クラスで表示/非表示を制御するためインラインスタイルをリセット
+  if (autoFanCard) {
+    autoFanCard.style.display = '';
+  }
+
+  // 前回有効化していた場合は状態を復元
+  if (localStorage.getItem('expertMode') === 'true') {
+    rootEl.setAttribute('data-expert-mode', 'true');
+  }
+
+  // 解放コマンド：「TOP・はじめに」5回 → 「Dev Wiki 日本語版」5回
+  const SECRET_SEQUENCE = [
+    { view: 'home', count: 5, label: 'TOP・はじめに' },
+    { view: 'wiki', count: 5, label: 'Dev Wiki 日本語版' }
+  ];
+
+  let stepIndex = 0;
+  let currentCount = 0;
+  let resetTimer = null;
+
+  function showToast(msg) {
+    let toast = document.getElementById('expertToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'expertToast';
+      toast.className = 'expert-toast';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => {
+      toast.style.display = 'none';
+    }, 2000);
+  }
+
+  function resetSequence() {
+    stepIndex = 0;
+    currentCount = 0;
+  }
+
+  navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if (rootEl.getAttribute('data-expert-mode') === 'true') return;
+
+      const clickedView = link.getAttribute('data-view');
+      const expectedStep = SECRET_SEQUENCE[stepIndex];
+
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(resetSequence, 4000);
+
+      if (clickedView === expectedStep.view) {
+        currentCount++;
+
+        // スマホ表示時：3回目以降はメニューが閉じないよう開き直す
+        if (currentCount >= 3 && typeof openSidebar === 'function' && window.innerWidth <= 768) {
+          setTimeout(openSidebar, 10);
+        }
+
+        if (currentCount >= expectedStep.count) {
+          stepIndex++;
+          currentCount = 0;
+
+          if (stepIndex >= SECRET_SEQUENCE.length) {
+            resetSequence();
+            if (typeof closeSidebar === 'function') closeSidebar();
+
+            setTimeout(() => {
+              const agreed = window.confirm(
+                '【上級者向け機能の表示確認】\n\n' +
+                'これより先は、Sysconの熱制御テーブル書き換え（fantbl setini）など、設定やコマンドを誤るとPS3本体が起動不能（ブリック）になる可能性がある応用機能が含まれます。\n\n' +
+                '作業内容とリスクを理解したうえで、上級者向け機能を表示しますか？'
+              );
+
+              if (agreed) {
+                rootEl.setAttribute('data-expert-mode', 'true');
+                localStorage.setItem('expertMode', 'true');
+                showToast('🔓 上級者モードを有効にしました');
+              }
+            }, 50);
+          } else {
+            const nextStep = SECRET_SEQUENCE[stepIndex];
+            showToast(`ステップ1完了：次は「${nextStep.label}」を${nextStep.count}回`);
+          }
+        }
+      } else {
+        resetSequence();
+        if (clickedView === SECRET_SEQUENCE[0].view) {
+          currentCount = 1;
+        }
+      }
+    });
+  });
+
+  if (disableBtn) {
+    disableBtn.addEventListener('click', () => {
+      rootEl.removeAttribute('data-expert-mode');
+      localStorage.removeItem('expertMode');
+      resetSequence();
+      showToast('🔒 上級者モードを解除しました');
+    });
+  }
+})();

@@ -1443,3 +1443,50 @@ a.tool-link-card:hover {
   white-space: pre;
   user-select: all;
 }
+/* ==========================================
+   上級者モード（隠し機能）制御用スタイル
+   ========================================== */
+html:not([data-expert-mode="true"]) .expert-only {
+  display: none !important;
+}
+
+.footer-version-line {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.disable-expert-btn {
+  background-color: var(--btn-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.disable-expert-btn:hover {
+  color: var(--text-color);
+  border-color: var(--link-color);
+}
+
+.expert-toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(24, 24, 27, 0.92);
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  z-index: 2000;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}

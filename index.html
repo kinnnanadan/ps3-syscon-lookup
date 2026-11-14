@@ -334,7 +334,7 @@
 
           <div class="readme-card" style="margin-top: 18px;">
 <!-- 自動ファンカーブ提案カード（script.js の ENABLE_AUTO_FAN_CURVE で表示/非表示を制御） -->
-          <div class="readme-card" id="autoFanCard" style="margin-top: 18px; display: none;">
+          <div class="readme-card expert-only" id="autoFanCard" style="margin-top: 18px;">
             <h2>🤖 Syscon ファンテーブル（p0〜p9）自動生成</h2>
             <p class="site-description" style="margin-bottom: 14px;">
               対象チップ（<code>CELL: 0</code> / <code>RSX: 1</code>）と目標上限温度を選ぶと、0.50℃刻みのヒステリシスを持たせた <code>p0</code>〜<code>p9</code> の <code>fantbl setini</code> コマンドを自動生成します。
@@ -418,6 +418,10 @@
           <p>
             参考資料: <a href="https://www.psdevwiki.com/ps3/" target="_blank" rel="noopener noreferrer">PS3 Developer Wiki</a> /
             <a href="#references">参考資料・ライセンス詳細</a>
+          </p>
+          <p class="footer-version-line">
+            <span>PS3 修理・解析データベース (α版)</span>
+            <button type="button" id="disableExpertBtn" class="disable-expert-btn expert-only">🔓 上級者モード解除</button>
           </p>
         </footer>
       </div>
