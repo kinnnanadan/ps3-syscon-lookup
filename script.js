@@ -1562,15 +1562,29 @@ const ENABLE_AUTO_FAN_CURVE = true;
   }
 })();
 // ==========================================
-// 上級者限定ページへのURL直接アクセス保護 ＆ 解除時の自動退避
+// Syscon 内部モードページの公開フラグ ＆ アクセス保護制御
 // ==========================================
+// ▼ true にすると上級者モード時に表示、false にすると上級者モードでも完全に非表示になります ▼
+const ENABLE_SYSCON_INTERNAL_PAGE = false;
+
 (function protectExpertViews() {
   const EXPERT_VIEWS = ['syscon-internal'];
+  const sysconNavLink = document.querySelector('.sidebar-nav .nav-item[data-view="syscon-internal"]');
+
+  // 公開フラグが false の場合はサイドバーのリンクを強制非表示にする
+  if (!ENABLE_SYSCON_INTERNAL_PAGE && sysconNavLink) {
+    sysconNavLink.style.display = 'none';
+  }
 
   function enforceExpertViewGuard() {
     const currentHash = window.location.hash.replace('#', '');
+    if (!EXPERT_VIEWS.includes(currentHash)) return;
+
     const isExpert = document.documentElement.getAttribute('data-expert-mode') === 'true';
-    if (EXPERT_VIEWS.includes(currentHash) && !isExpert) {
+    const isPageEnabled = (currentHash === 'syscon-internal') ? ENABLE_SYSCON_INTERNAL_PAGE : true;
+
+    // 公開フラグが false、または上級者モードが無効な場合は TOP へ戻す
+    if (!isPageEnabled || !isExpert) {
       window.location.hash = '#home';
     }
   }
