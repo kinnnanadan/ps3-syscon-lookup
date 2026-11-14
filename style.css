@@ -1409,3 +1409,37 @@ a.tool-link-card:hover {
   font-size: 0.88rem;
   line-height: 1.55;
 }
+/* ==========================================
+   Syscon コマンド出力ボックス用スタイル
+   ========================================== */
+.cmd-output-wrapper {
+  margin-top: 14px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.cmd-output-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.cmd-output-box {
+  margin: 0;
+  padding: 12px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--text-color);
+  overflow-x: auto;
+  white-space: pre;
+  user-select: all;
+}

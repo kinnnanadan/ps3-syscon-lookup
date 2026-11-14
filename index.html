@@ -333,16 +333,25 @@
           </div>
 
           <div class="readme-card" style="margin-top: 18px;">
-            <!-- 自動ファンカーブ提案カード -->
-          <div class="readme-card" style="margin-top: 18px;">
-            <h2>🤖 目的・目標温度からファン設定を自動提案</h2>
+<!-- 自動ファンカーブ提案カード（script.js の ENABLE_AUTO_FAN_CURVE で表示/非表示を制御） -->
+          <div class="readme-card" id="autoFanCard" style="margin-top: 18px; display: none;">
+            <h2>🤖 Syscon ファンテーブル（p0〜p9）自動生成</h2>
             <p class="site-description" style="margin-bottom: 14px;">
-              基板のRSX世代と「冷却重視・静音重視」または「高負荷時の目標上限温度」を選ぶと、Syscon熱制御テーブル（<code>fantbl</code>）やWebMAN制御の目安となる段階別PWM値（% / 16進数）を自動生成します。
+              対象チップ（<code>CELL: 0</code> / <code>RSX: 1</code>）と目標上限温度を選ぶと、0.50℃刻みのヒステリシスを持たせた <code>p0</code>〜<code>p9</code> の <code>fantbl setini</code> コマンドを自動生成します。
             </p>
 
             <div class="auto-fan-controls">
               <div class="auto-control-group">
-                <label class="calc-label">1. 対象モデル・RSX世代</label>
+                <label class="calc-label">1. 設定対象（0: CELL / 1: RSX）</label>
+                <div class="preset-group" id="fanZoneGroup" style="margin-bottom: 0;">
+                  <button type="button" class="preset-btn active" data-zone="1">RSX (1)</button>
+                  <button type="button" class="preset-btn" data-zone="0">CELL (0)</button>
+                  <button type="button" class="preset-btn" data-zone="both">両方 (0 &amp; 1)</button>
+                </div>
+              </div>
+
+              <div class="auto-control-group">
+                <label class="calc-label">2. 対象モデル・RSX世代</label>
                 <div class="preset-group" id="fanChipGroup" style="margin-bottom: 0;">
                   <button type="button" class="preset-btn active" data-chip="90nm">初期型 (90nm RSX)</button>
                   <button type="button" class="preset-btn" data-chip="65nm">中期・Slim初期 (65nm)</button>
@@ -351,7 +360,7 @@
               </div>
 
               <div class="auto-control-group">
-                <label class="calc-label">2. 運用スタイル（プリセット）</label>
+                <label class="calc-label">3. 運用スタイル（プリセット）</label>
                 <div class="preset-group" id="fanStyleGroup" style="margin-bottom: 0;">
                   <button type="button" class="preset-btn" data-style="cooling">❄️ 冷却重視</button>
                   <button type="button" class="preset-btn active" data-style="balanced">⚖️ バランス</button>
@@ -361,61 +370,49 @@
 
               <div class="auto-control-group">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                  <label for="targetTempSlider" class="calc-label" style="margin:0;">3. 高負荷時の目標上限温度（微調整可）</label>
-                  <span class="target-temp-badge" id="targetTempDisplay">68 ℃</span>
+                  <label for="targetTempSlider" class="calc-label" style="margin:0;">4. 高負荷時の目標上限温度（p7基準・微調整可）</label>
+                  <span class="target-temp-badge" id="targetTempDisplay">67.00 ℃</span>
                 </div>
-                <input type="range" id="targetTempSlider" class="temp-slider" min="58" max="78" step="1" value="68">
+                <input type="range" id="targetTempSlider" class="temp-slider" min="58" max="78" step="0.5" value="67">
                 <div class="slider-scale">
-                  <span>58℃ (超冷却)</span>
-                  <span>68℃ (90nm推奨上限)</span>
-                  <span>78℃ (静音寄り)</span>
+                  <span>58.0℃ (超冷却)</span>
+                  <span>67.0℃ (90nm推奨上限)</span>
+                  <span>78.0℃ (静音寄り)</span>
                 </div>
               </div>
             </div>
 
             <div class="auto-summary-box" id="autoFanSummary"></div>
 
-            <div class="table-wrapper" style="margin-top: 12px;">
+            <!-- Syscon コマンド出力ボックス -->
+            <div class="cmd-output-wrapper">
+              <div class="cmd-output-header">
+                <span class="calc-label" style="margin:0;">Syscon 入力用コマンド（そのまま貼り付け可能）</span>
+                <button type="button" id="copyAutoFanBtn" class="copy-btn">コマンドをコピー</button>
+              </div>
+              <pre class="cmd-output-box" id="autoFanCommandBox"></pre>
+            </div>
+
+            <!-- 確認用テーブル -->
+            <div class="table-wrapper" style="margin-top: 14px;">
               <table class="ref-table">
                 <thead>
                   <tr>
                     <th>Step</th>
-                    <th>動作温度帯 (昇温 / 降温)</th>
-                    <th>ファン速度 (%)</th>
-                    <th>16進数 (0x表記)</th>
-                    <th>10進数</th>
-                    <th>役割</th>
+                    <th>降温 (tempD)</th>
+                    <th>昇温 (tempU)</th>
+                    <th>16進数</th>
+                    <th>速度 (%)</th>
                   </tr>
                 </thead>
                 <tbody id="autoFanTableBody"></tbody>
               </table>
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px;">
-              <span class="site-description" style="font-size:0.8rem;">※ 実際の到達温度はグリス状態（殻割り有無）・室温・設置環境により前後します。</span>
-              <button type="button" id="copyAutoFanBtn" class="copy-btn">提案テーブルをコピー</button>
-            </div>
-          </div>
-            <h2>📊 ファン速度 ⇄ 16進数 早見表</h2>
-            <p class="site-description" style="margin-bottom: 12px;">
-              計算式: <code>10進数 = 四捨五入(パーセント ÷ 100 × 255)</code> を 16進数へ変換しています。
+            <p class="site-description" style="font-size:0.8rem; margin-top:10px;">
+              ※ <code>fantbl setini</code> 実行後は、必要に応じて <code>eepcsum</code> でチェックサムを確認・修正してください。実際の到達温度はグリス状態（殻割り有無）・室温により前後します。
             </p>
-            <div class="table-wrapper">
-              <table class="ref-table">
-                <thead>
-                  <tr>
-                    <th>速度 (%)</th>
-                    <th>16進数 (0x表記)</th>
-                    <th>16進数 (値のみ)</th>
-                    <th>10進数 (PWM)</th>
-                    <th>備考</th>
-                  </tr>
-                </thead>
-                <tbody id="fanRefTableBody"></tbody>
-              </table>
-            </div>
           </div>
-        </section>
 
         <footer class="site-footer">
           <p>

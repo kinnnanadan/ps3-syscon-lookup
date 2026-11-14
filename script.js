@@ -1214,161 +1214,186 @@ function renderInternalWikiArticle(articleKey, fallbackName, extSlug, targetSecI
   }
 }
 // ==========================================
-// ファン設定 自動提案ツール（目的・目標温度別カーブ生成）
+// Syscon ファンテーブル（p0〜p9）自動生成ツール
 // ==========================================
+// ▼ この機能をページに表示する場合は true、隠す場合は false に変更してください ▼
+const ENABLE_AUTO_FAN_CURVE = true;
+
 (function initAutoFanGenerator() {
+  const cardEl = document.getElementById('autoFanCard');
+  if (!cardEl) return;
+
+  // フラグが false の場合は非表示のまま処理を終了
+  if (!ENABLE_AUTO_FAN_CURVE) {
+    cardEl.style.display = 'none';
+    return;
+  }
+  cardEl.style.display = 'block';
+
+  const zoneBtns = document.querySelectorAll('#fanZoneGroup .preset-btn');
   const chipBtns = document.querySelectorAll('#fanChipGroup .preset-btn');
   const styleBtns = document.querySelectorAll('#fanStyleGroup .preset-btn');
   const tempSlider = document.getElementById('targetTempSlider');
   const tempDisplay = document.getElementById('targetTempDisplay');
   const summaryBox = document.getElementById('autoFanSummary');
+  const commandBox = document.getElementById('autoFanCommandBox');
   const tableBody = document.getElementById('autoFanTableBody');
   const copyBtn = document.getElementById('copyAutoFanBtn');
 
-  if (!tempSlider || !tableBody) return;
-
+  let selectedZone = '1'; // '1': RSX, '0': CELL, 'both': 両方
   let selectedChip = '90nm';
   let selectedStyle = 'balanced';
 
-  // 機種とスタイルに応じた推奨目標温度の基準テーブル
   const defaultTargets = {
-    '90nm': { cooling: 63, balanced: 67, quiet: 70 },
-    '65nm': { cooling: 65, balanced: 70, quiet: 74 },
-    '40nm': { cooling: 66, balanced: 72, quiet: 76 }
+    '90nm': { cooling: 63.0, balanced: 67.0, quiet: 70.0 },
+    '65nm': { cooling: 65.0, balanced: 70.0, quiet: 74.0 },
+    '40nm': { cooling: 66.0, balanced: 72.0, quiet: 76.0 }
   };
 
-  function toHex2(pct) {
-    const clamped = Math.max(20, Math.min(100, Math.round(pct)));
+  function fmtTemp(val) {
+    const snapped = Math.round(val * 2) / 2;
+    return snapped.toFixed(2).padStart(5, '0');
+  }
+
+  function pctToPwm(pct) {
+    const clamped = Math.max(20, Math.min(100, pct));
     const dec = Math.round((clamped / 100) * 255);
-    return {
-      pct: clamped,
-      dec,
-      hex: '0x' + dec.toString(16).toUpperCase().padStart(2, '0')
-    };
+    const hex = '0x' + dec.toString(16).toLowerCase().padStart(2, '0');
+    const actualPct = ((dec / 255) * 100).toFixed(1);
+    return { dec, hex, actualPct };
   }
 
   function generateFanCurve() {
-    const targetTemp = parseInt(tempSlider.value, 10);
-    tempDisplay.textContent = `${targetTemp} ℃`;
+    const targetTemp = parseFloat(tempSlider.value);
+    tempDisplay.textContent = `${fmtTemp(targetTemp)} ℃`;
 
-    // 目標温度が低いほど高いPWMを割り当てる計算ロジック
-    // 基準: targetTemp = 68℃ のとき常用上限付近を 38〜42% 前後に設定
-    const heatOffset = 68 - targetTemp; // 目標温度を1℃下げるごとに +1.6% 補正
-    const chipBaseBoost = selectedChip === '90nm' ? 3 : (selectedChip === '65nm' ? 1 : 0);
+    // 基準67℃からの差分に応じてPWM全体をシフト
+    const heatOffset = 67.0 - targetTemp;
+    const chipBoost = selectedChip === '90nm' ? 2.0 : (selectedChip === '65nm' ? 0.5 : 0);
 
-    const idlePct = Math.max(20, Math.min(35, Math.round(22 + heatOffset * 0.6 + chipBaseBoost)));
-    const lowLoadPct = Math.max(idlePct + 3, Math.min(45, Math.round(28 + heatOffset * 0.9 + chipBaseBoost)));
-    const midLoadPct = Math.max(lowLoadPct + 4, Math.min(60, Math.round(34 + heatOffset * 1.3 + chipBaseBoost)));
-    const targetLoadPct = Math.max(midLoadPct + 5, Math.min(75, Math.round(42 + heatOffset * 1.6 + chipBaseBoost)));
-    const highLoadPct = Math.max(targetLoadPct + 8, Math.min(88, Math.round(55 + heatOffset * 1.5 + chipBaseBoost)));
+    // p0〜p8 の目標パーセント算出（p0は最低20%以上、滑らかに上昇）
+    const baseP0 = Math.max(20, Math.min(34, 24.5 + heatOffset * 0.6 + chipBoost));
+    const baseP7 = Math.max(baseP0 + 6, Math.min(72, 32.2 + heatOffset * 1.4 + chipBoost));
+    const baseP8 = Math.max(baseP7 + 2.5, Math.min(82, baseP7 + 3.0 + Math.max(0, heatOffset * 0.2)));
 
-    // 温度ステップの算出（目標上限温度 targetTemp を Step 3 の維持ラインに設定）
-    const t1 = Math.max(45, targetTemp - 16);
-    const t2 = Math.max(t1 + 4, targetTemp - 9);
-    const t3 = Math.max(t2 + 4, targetTemp - 3);
-    const t4 = Math.max(t3 + 3, targetTemp + 2);
-    const t5 = Math.max(t4 + 4, targetTemp + 7);
+    // p0〜p7 まで緩やかな二次曲線で補間
+    const pctList = [];
+    for (let i = 0; i <= 7; i++) {
+      const ratio = Math.pow(i / 7, 1.35);
+      pctList.push(baseP0 + (baseP7 - baseP0) * ratio);
+    }
+    pctList.push(baseP8); // p8
+    pctList.push(100);    // p9 (0xff)
 
-    const steps = [
-      {
-        step: 'Step 0',
-        tempRange: `〜 ${t1}℃ (起動・待機)`,
-        ...toHex2(idlePct),
-        role: 'アイドル・XMB待機時の最低回転'
-      },
-      {
-        step: 'Step 1',
-        tempRange: `${t1}℃ → ${t2}℃ (降温 ${t1 - 3}℃)`,
-        ...toHex2(lowLoadPct),
-        role: '軽負荷（PS1/PS2・動画再生など）'
-      },
-      {
-        step: 'Step 2',
-        tempRange: `${t2}℃ → ${t3}℃ (降温 ${t2 - 3}℃)`,
-        ...toHex2(midLoadPct),
-        role: '通常ゲームプレイ開始時'
-      },
-      {
-        step: 'Step 3',
-        tempRange: `${t3}℃ → ${t4}℃ (降温 ${t3 - 3}℃)`,
-        ...toHex2(targetLoadPct),
-        role: `目標上限（${targetTemp}℃前後）維持の主力回転`
-      },
-      {
-        step: 'Step 4',
-        tempRange: `${t4}℃ → ${t5}℃ (降温 ${t4 - 3}℃)`,
-        ...toHex2(highLoadPct),
-        role: '夏場・高負荷タイトル時の強冷却'
-      },
-      {
-        step: 'Step 5',
-        tempRange: `${t5}℃ 以上 (降温 ${t5 - 4}℃)`,
-        ...toHex2(100),
-        role: '緊急最大冷却（オーバーヒート防止）'
-      }
+    // 温度しきい値（p7 の tempU = targetTemp を基準に 0.50℃ 刻みで逆算）
+    const u0 = targetTemp - 5.0;
+    const u1 = targetTemp - 8.0;
+    const u2 = targetTemp - 7.0;
+    const u3 = targetTemp - 6.0;
+    const u4 = targetTemp - 5.0;
+    const u5 = targetTemp - 4.0;
+    const u6 = targetTemp - 2.0;
+    const u7 = targetTemp;
+    const u8 = targetTemp + 3.0;
+    const u9 = selectedChip === '90nm' ? 80.0 : 85.0;
+
+    const rawSteps = [
+      { p: 'p0', d: 0.0,      u: u0 },
+      { p: 'p1', d: u1 - 2.0, u: u1 },
+      { p: 'p2', d: u2 - 1.5, u: u2 },
+      { p: 'p3', d: u3 - 1.5, u: u3 },
+      { p: 'p4', d: u4 - 2.0, u: u4 },
+      { p: 'p5', d: u5 - 2.0, u: u5 },
+      { p: 'p6', d: u6 - 3.0, u: u6 },
+      { p: 'p7', d: u7 - 3.5, u: u7 },
+      { p: 'p8', d: u8 - 4.0, u: u8 },
+      { p: 'p9', d: u0,       u: u9 }
     ];
 
-    // 解説コメントの生成
-    let advice = '';
-    if (selectedChip === '90nm' && targetTemp >= 71) {
-      advice = `⚠️ <strong>注意（90nm RSX）:</strong> 90nm世代のRSXは70℃を超えるとアンダーフィル劣化（エラー3034）のリスクが高まります。可能であれば目標温度を <strong>65〜68℃以下</strong> に設定することをおすすめします。`;
-    } else if (selectedChip === '90nm') {
-      advice = `✅ <strong>90nm RSX 保護設定:</strong> 高負荷時でも <strong>${targetTemp}℃前後</strong> に抑えるため、${t2}℃付近から早めに <strong>${steps[2].pct}% (${steps[2].hex}) 〜 ${steps[3].pct}% (${steps[3].hex})</strong> へ立ち上げる構成です。`;
-    } else if (selectedChip === '40nm') {
-      advice = `✅ <strong>40nm RSX 向け設定:</strong> 発熱が少ない40nmプロセス向けにアイドルを <strong>${steps[0].pct}% (${steps[0].hex})</strong> に抑え、高負荷時のみ <strong>${steps[3].pct}% (${steps[3].hex})</strong> 前後で静かに冷やすバランスです。`;
+    const steps = rawSteps.map((st, idx) => {
+      const pwm = pctToPwm(pctList[idx]);
+      return {
+        p: st.p,
+        tempD: fmtTemp(st.d),
+        tempU: fmtTemp(st.u),
+        hex: pwm.hex,
+        pct: pwm.actualPct
+      };
+    });
+
+    // コマンド文字列生成
+    const zones = selectedZone === 'both' ? ['0', '1'] : [selectedZone];
+    const cmdLines = [];
+    zones.forEach((z, zIdx) => {
+      if (zones.length > 1) {
+        cmdLines.push(z === '0' ? '# --- CELL (0) ---' : '\n# --- RSX (1) ---');
+      }
+      steps.forEach(s => {
+        cmdLines.push(`fantbl setini ${z} ${s.p} ${s.tempD} ${s.tempU} ${s.hex}`);
+      });
+    });
+    const commandText = cmdLines.join('\n');
+    commandBox.textContent = commandText;
+
+    // 解説メッセージ
+    const targetName = selectedZone === '1' ? 'RSX (1)' : (selectedZone === '0' ? 'CELL (0)' : 'CELL (0) & RSX (1)');
+    if (selectedChip === '90nm' && targetTemp >= 70.5) {
+      summaryBox.innerHTML = `⚠️ <strong>注意（90nm RSX）:</strong> 90nm世代のRSXは70℃を超えるとバンプ劣化（3034）のリスクが高まります。RSX側の目標温度は <strong>65.00〜68.00℃以下</strong> を推奨します。`;
     } else {
-      advice = `✅ <strong>65nm RSX 向け設定:</strong> アイドル <strong>${steps[0].pct}% (${steps[0].hex})</strong> から負荷に応じて段階的に引き上げ、高負荷時 <strong>${targetTemp}℃前後</strong> を維持する設定です。`;
+      summaryBox.innerHTML = `✅ <strong>対象: ${targetName}（${selectedChip}）</strong> ／ <strong>p7（${fmtTemp(targetTemp)}℃）で ${steps[7].hex}（${steps[7].pct}%）</strong> に到達し、p8（${steps[8].tempU}℃）で <strong>${steps[8].hex}（${steps[8].pct}%）</strong>、p9（${steps[9].tempU}℃）でフル回転（<code>0xff</code>）に入る10段階カーブです。`;
     }
 
-    summaryBox.innerHTML = advice;
-
+    // 確認テーブル描画
     tableBody.innerHTML = steps.map(s => `
       <tr>
-        <td class="mono">${s.step}</td>
-        <td>${s.tempRange}</td>
-        <td class="mono">${s.pct}%</td>
+        <td class="mono">${s.p}</td>
+        <td class="mono">${s.tempD} ℃</td>
+        <td class="mono">${s.tempU} ℃</td>
         <td class="mono">${s.hex}</td>
-        <td class="mono">${s.dec}</td>
-        <td>${s.role}</td>
+        <td class="mono">${s.pct}%</td>
       </tr>
     `).join('');
-
-    // コピー用テキストを保存
-    tableBody.dataset.copyText = [
-      `【PS3 ファン設定提案】対象: ${selectedChip} / 目標上限: ${targetTemp}℃`,
-      ...steps.map(s => `${s.step}: ${s.tempRange} -> ${s.pct}% (${s.hex} / DEC:${s.dec}) [${s.role}]`)
-    ].join('\n');
   }
 
-  // 機種選択ボタン
+  zoneBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      zoneBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedZone = btn.getAttribute('data-zone');
+      // CELL (0) 単体選択時はやや高め、RSX (1) 時はRSX基準のデフォルト値へ調整
+      const base = defaultTargets[selectedChip][selectedStyle];
+      tempSlider.value = (selectedZone === '0' && selectedChip === '90nm') ? Math.min(78, base + 3.0) : base;
+      generateFanCurve();
+    });
+  });
+
   chipBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       chipBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       selectedChip = btn.getAttribute('data-chip');
-      tempSlider.value = defaultTargets[selectedChip][selectedStyle];
+      const base = defaultTargets[selectedChip][selectedStyle];
+      tempSlider.value = (selectedZone === '0' && selectedChip === '90nm') ? Math.min(78, base + 3.0) : base;
       generateFanCurve();
     });
   });
 
-  // スタイル選択ボタン
   styleBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       styleBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       selectedStyle = btn.getAttribute('data-style');
-      tempSlider.value = defaultTargets[selectedChip][selectedStyle];
+      const base = defaultTargets[selectedChip][selectedStyle];
+      tempSlider.value = (selectedZone === '0' && selectedChip === '90nm') ? Math.min(78, base + 3.0) : base;
       generateFanCurve();
     });
   });
 
-  // スライダー手動操作
   tempSlider.addEventListener('input', generateFanCurve);
 
-  // テーブルコピーボタン
   if (copyBtn) {
     copyBtn.addEventListener('click', () => {
-      const text = tableBody.dataset.copyText || '';
+      const text = commandBox.textContent || '';
       if (!text) return;
       navigator.clipboard.writeText(text).then(() => {
         const orig = copyBtn.textContent;
@@ -1378,6 +1403,5 @@ function renderInternalWikiArticle(articleKey, fallbackName, extSlug, targetSecI
     });
   }
 
-  // 初回描画
   generateFanCurve();
 })();
