@@ -134,6 +134,16 @@
             </p>
           </div>
 
+          <!-- Wiki ページ内・全体検索バー -->
+          <div class="wiki-search-box" id="wikiSearchBox">
+            <div class="search-input-wrapper">
+              <input type="text" id="wikiSearchInput" placeholder="Wiki内を検索 (例: RSX, 40nm, APS-226, UART, NOR, CECHAxx)" autocomplete="off">
+              <button type="button" id="wikiSearchClearBtn" class="clear-btn hidden" aria-label="Wiki検索をクリア" title="クリア">×</button>
+            </div>
+            <div class="wiki-search-meta hidden" id="wikiSearchMeta"></div>
+            <div class="wiki-search-results hidden" id="wikiSearchResults" role="region" aria-label="Wiki検索結果"></div>
+          </div>
+
           <!-- 記事切り替えタブ -->
           <div class="wiki-nav-bar" id="wikiArticleTabs" role="tablist" aria-label="Wiki記事一覧"></div>
 

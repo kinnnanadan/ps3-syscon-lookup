@@ -550,6 +550,7 @@ function renderWikiArticle(articleId) {
 // ==========================================
 let psdevWikiData = null;
 let wikiLinkMode = localStorage.getItem('wikiLinkMode') || 'jp'; // 'jp' または 'en'
+let currentWikiArticleKey = null;
 
 if (wikiArticleTabs && wikiArticleContainer) {
   fetch('wiki.json', { cache: 'no-store' })
@@ -562,6 +563,9 @@ if (wikiArticleTabs && wikiArticleContainer) {
     .then(data => {
       if (!data || !data.navboxes) return;
       psdevWikiData = data;
+      if (typeof buildWikiSearchIndex === 'function') {
+        buildWikiSearchIndex(data);
+      }
       renderPsdevWikiHome();
     })
     .catch(err => {
@@ -577,6 +581,7 @@ if (wikiArticleTabs && wikiArticleContainer) {
 function renderPsdevWikiHome() {
   const data = psdevWikiData;
   if (!data) return;
+  currentWikiArticleKey = null;
 
   wikiArticleTabs.style.display = 'none';
   const articlesMap = data.articles || {};
@@ -812,6 +817,7 @@ function renderInternalWikiArticle(slug, fallbackName) {
 function renderPsdevWikiHome() {
   const data = psdevWikiData;
   if (!data) return;
+  currentWikiArticleKey = null;
 
   wikiArticleTabs.style.display = 'none';
   const articlesMap = data.articles || {};
@@ -946,9 +952,24 @@ function renderPsdevWikiHome() {
 function renderPsdevWikiHome() {
   const data = psdevWikiData;
   if (!data) return;
+  currentWikiArticleKey = null;
 
   wikiArticleTabs.style.display = 'none';
   const articlesMap = data.articles || {};
+
+  const buildNavboxLink = ({ label, wikiSlug, articleKey, targetSec, note, redLink }) => {
+    const resolvedKey = articleKey || wikiSlug;
+    const hasArticle = Boolean(articlesMap[resolvedKey]);
+    const hasNoteClass = note ? 'has-note' : '';
+    const hasJpClass = hasArticle ? 'has-jp-article' : '';
+    const redLinkClass = redLink ? 'red-link' : '';
+    const wikiUrl = `https://www.psdevwiki.com/ps3/${encodeURIComponent(wikiSlug)}`;
+    const plainName = String(label).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const noteAttr = note ? `data-note="${note.replace(/"/g, '&quot;')}"` : '';
+    const secAttr = (targetSec !== undefined && targetSec !== null) ? `data-target-sec="${targetSec}"` : '';
+
+    return `<a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" class="psdev-item-link ${hasNoteClass} ${hasJpClass} ${redLinkClass}" data-item-name="${plainName.replace(/"/g, '&quot;')}" data-slug="${wikiSlug}" data-article-key="${resolvedKey}" ${secAttr} ${noteAttr}>${label}</a>`;
+  };
 
   const navboxesHtml = data.navboxes.map(box => {
     const groupsRowsHtml = box.groups.map(group => {
@@ -957,35 +978,61 @@ function renderPsdevWikiHome() {
       return group.rows.map((row, idx) => {
         let catCells = '';
         if (idx === 0) {
+          const catHtml = group.categorySlug
+            ? buildNavboxLink({
+                label: group.category,
+                wikiSlug: group.categorySlug,
+                articleKey: group.categoryArticleKey,
+                targetSec: group.categoryTargetSec,
+                note: group.categoryNote
+              })
+            : group.category;
+
           if (group.subCategory) {
+            const subCatHtml = group.subCategorySlug
+              ? buildNavboxLink({
+                  label: group.subCategory,
+                  wikiSlug: group.subCategorySlug,
+                  articleKey: group.subCategoryArticleKey,
+                  targetSec: group.subCategoryTargetSec,
+                  note: group.subCategoryNote
+                })
+              : group.subCategory;
+
             catCells = `
-              <th class="psdev-cat-cell" rowspan="${rowCount}">${group.category}</th>
-              <th class="psdev-subcat-cell" rowspan="${rowCount}">${group.subCategory}</th>
+              <th class="psdev-cat-cell" rowspan="${rowCount}">${catHtml}</th>
+              <th class="psdev-subcat-cell" rowspan="${rowCount}">${subCatHtml}</th>
             `;
           } else {
             catCells = `
-              <th class="psdev-cat-cell" colspan="2" rowspan="${rowCount}">${group.category}</th>
+              <th class="psdev-cat-cell" colspan="2" rowspan="${rowCount}">${catHtml}</th>
             `;
           }
         }
 
-        const itemsHtml = row.items.map(item => {
-          const articleKey = item.articleKey || item.wikiSlug;
-          const hasArticle = Boolean(articlesMap[articleKey]);
-          const hasNoteClass = item.note ? 'has-note' : '';
-          const hasJpClass = hasArticle ? 'has-jp-article' : '';
-          const redLinkClass = item.redLink ? 'red-link' : '';
-          const wikiUrl = `https://www.psdevwiki.com/ps3/${encodeURIComponent(item.wikiSlug)}`;
-          const noteAttr = item.note ? `data-note="${item.note.replace(/"/g, '&quot;')}"` : '';
-          const secAttr = (item.targetSec !== undefined) ? `data-target-sec="${item.targetSec}"` : '';
+        const labelHtml = row.labelSlug
+          ? buildNavboxLink({
+              label: row.label,
+              wikiSlug: row.labelSlug,
+              articleKey: row.labelArticleKey,
+              targetSec: row.labelTargetSec,
+              note: row.labelNote
+            })
+          : row.label;
 
-          return `<a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" class="psdev-item-link ${hasNoteClass} ${hasJpClass} ${redLinkClass}" data-item-name="${item.name}" data-slug="${item.wikiSlug}" data-article-key="${articleKey}" ${secAttr} ${noteAttr}>${item.name}</a>`;
-        }).join('<span class="psdev-dot">•</span>');
+        const itemsHtml = row.items.map(item => buildNavboxLink({
+          label: item.name,
+          wikiSlug: item.wikiSlug,
+          articleKey: item.articleKey,
+          targetSec: item.targetSec,
+          note: item.note,
+          redLink: item.redLink
+        })).join('<span class="psdev-dot">•</span>');
 
         return `
           <tr>
             ${catCells}
-            <th class="psdev-row-label">${row.label}</th>
+            <th class="psdev-row-label">${labelHtml}</th>
             <td class="psdev-items-cell">${itemsHtml}</td>
           </tr>
         `;
@@ -1020,7 +1067,7 @@ function renderPsdevWikiHome() {
     <div class="wiki-meta-box">
       <strong>出典元:</strong> <a href="${data.sourceUrl}" target="_blank" rel="noopener noreferrer" class="wrap-link">${data.sourceTitle}</a><br>
       <strong>最終更新:</strong> ${data.lastUpdated} ／ <strong>ライセンス:</strong> <a href="https://www.gnu.org/licenses/old-licenses/fdl-1.2.html" target="_blank" rel="noopener noreferrer" class="wrap-link">GNU Free Documentation License 1.2 (GFDL 1.2)</a><br>
-      ※ <strong>下線付きの項目</strong>（CECHAxx / COK-001〜002W）はサイト内に日本語翻訳記事があります。上のスイッチで「日本語翻訳ページ」と「本家（英語）」をいつでも切り替えられます。
+      ※ <strong>下線付きの項目</strong>（コンソール情報・マザーボード・Blu-rayドライブ・電源ユニット・マザーボード構成部品全般・Syscon Error Codes）はサイト内に日本語翻訳記事があります。上のスイッチで「日本語翻訳ページ」と「本家（英語）」をいつでも切り替えられます。
     </div>
 
     <div id="psdevNoteBanner" class="psdev-note-banner hidden">
@@ -1212,7 +1259,407 @@ function renderInternalWikiArticle(articleKey, fallbackName, extSlug, targetSecI
       }, 50);
     }
   }
+
+  currentWikiArticleKey = article ? articleKey : null;
+  if (typeof applyWikiSearchHighlightsOnly === 'function') {
+    applyWikiSearchHighlightsOnly();
+  }
 }
+
+// ==========================================
+// PS3 Dev Wiki ページ内検索 ＆ 横断検索機能
+// ==========================================
+let wikiSearchEntries = [];
+
+function stripHtmlTags(html) {
+  if (!html) return '';
+  return String(html).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function escapeRegExp(str) {
+  return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function toHalfWidthLower(str) {
+  return normalizeText(String(str || ''));
+}
+
+function buildSearchHighlightRegex(terms) {
+  const patterns = [];
+  terms.forEach(t => {
+    const clean = t.trim();
+    if (!clean) return;
+    patterns.push(escapeRegExp(clean));
+  });
+  if (patterns.length === 0) return null;
+  return new RegExp(`(${patterns.join('|')})`, 'gi');
+}
+
+function highlightEscapedText(text, terms) {
+  const escaped = escapeHtml(text);
+  const regex = buildSearchHighlightRegex(terms);
+  if (!regex) return escaped;
+  return escaped.replace(regex, '<mark class="wiki-search-mark">$1</mark>');
+}
+
+function makeSearchSnippet(text, terms) {
+  const clean = stripHtmlTags(text);
+  if (!clean) return '';
+  const normClean = toHalfWidthLower(clean);
+  let matchIdx = -1;
+  for (const t of terms) {
+    const idx = normClean.indexOf(t);
+    if (idx !== -1 && (matchIdx === -1 || idx < matchIdx)) {
+      matchIdx = idx;
+    }
+  }
+  if (matchIdx === -1) {
+    return clean.length > 95 ? clean.slice(0, 95) + '...' : clean;
+  }
+  const start = Math.max(0, matchIdx - 28);
+  const end = Math.min(clean.length, matchIdx + 72);
+  let snippet = clean.slice(start, end);
+  if (start > 0) snippet = '...' + snippet;
+  if (end < clean.length) snippet = snippet + '...';
+  return snippet;
+}
+
+function buildWikiSearchIndex(data) {
+  const articlesMap = data.articles || {};
+  const entriesByKey = new Map();
+
+  Object.entries(articlesMap).forEach(([key, art]) => {
+    const leadPlain = stripHtmlTags(art.lead || '');
+    const specsPlain = (art.specs || []).map(([k, v]) => `${stripHtmlTags(k)}: ${stripHtmlTags(v)}`).join(' / ');
+    const sections = (art.sections || []).map((sec, idx) => {
+      const pText = (sec.paragraphs || []).map(stripHtmlTags).join(' ');
+      const tText = sec.table
+        ? [...(sec.table.headers || []), ...((sec.table.rows || []).flat())].map(stripHtmlTags).join(' ')
+        : '';
+      const wText = stripHtmlTags(sec.warning || '');
+      const fullSec = [pText, tText, wText].filter(Boolean).join(' ');
+      return {
+        idx,
+        heading: sec.heading || '',
+        headingNorm: toHalfWidthLower(sec.heading || ''),
+        text: fullSec,
+        textNorm: toHalfWidthLower(fullSec)
+      };
+    });
+
+    const slugFromUrl = (art.sourceUrl || '').split('/ps3/')[1] || key;
+    const bodyPlain = [leadPlain, specsPlain, ...sections.map(s => `${s.heading} ${s.text}`)].filter(Boolean).join(' ');
+
+    entriesByKey.set(key, {
+      key,
+      slug: decodeURIComponent(slugFromUrl),
+      title: art.title || key,
+      titleNorm: toHalfWidthLower(`${art.title || ''} ${key}`),
+      hasArticle: true,
+      categoryLabel: '日本語記事',
+      notesNorm: '',
+      bodyPlain,
+      bodyNorm: toHalfWidthLower(bodyPlain),
+      sections
+    });
+  });
+
+  // Navbox 上のカテゴリ名・未翻訳項目もインデックスに追加
+  (data.navboxes || []).forEach(box => {
+    (box.groups || []).forEach(group => {
+      (group.rows || []).forEach(row => {
+        const ctxLabel = `${box.title} › ${row.label}`;
+        (row.items || []).forEach(item => {
+          const resolvedKey = item.articleKey || item.wikiSlug;
+          const plainName = stripHtmlTags(item.name || resolvedKey);
+          const notePlain = stripHtmlTags(item.note || '');
+          const existing = entriesByKey.get(resolvedKey);
+          if (existing) {
+            existing.categoryLabel = ctxLabel;
+            existing.notesNorm += ' ' + toHalfWidthLower(`${plainName} ${item.wikiSlug} ${notePlain} ${ctxLabel}`);
+          } else {
+            entriesByKey.set(resolvedKey, {
+              key: resolvedKey,
+              slug: item.wikiSlug,
+              title: plainName,
+              titleNorm: toHalfWidthLower(`${plainName} ${item.wikiSlug}`),
+              hasArticle: false,
+              categoryLabel: `${ctxLabel}（準備中）`,
+              notesNorm: toHalfWidthLower(`${notePlain} ${ctxLabel}`),
+              bodyPlain: notePlain || `${ctxLabel} の項目`,
+              bodyNorm: toHalfWidthLower(`${notePlain} ${ctxLabel}`),
+              sections: []
+            });
+          }
+        });
+      });
+    });
+  });
+
+  wikiSearchEntries = Array.from(entriesByKey.values());
+}
+
+function clearWikiInlineHighlights() {
+  if (!wikiArticleContainer) return;
+  const marks = wikiArticleContainer.querySelectorAll('mark.wiki-inline-mark');
+  if (marks.length === 0) return;
+  marks.forEach(mark => {
+    const parent = mark.parentNode;
+    if (!parent) return;
+    parent.replaceChild(document.createTextNode(mark.textContent), mark);
+    parent.normalize();
+  });
+}
+
+function applyWikiSearchHighlightsOnly() {
+  clearWikiInlineHighlights();
+  const input = document.getElementById('wikiSearchInput');
+  if (!input) return;
+  const rawQuery = input.value.trim();
+  if (!rawQuery || !currentWikiArticleKey) return;
+
+  const terms = toHalfWidthLower(rawQuery).split(/\s+/).filter(Boolean);
+  const rawTerms = rawQuery.split(/\s+/).filter(Boolean);
+  const regexTerms = Array.from(new Set([...rawTerms, ...terms]));
+  const regex = buildSearchHighlightRegex(regexTerms);
+  if (!regex) return;
+
+  const articleEl = wikiArticleContainer.querySelector('.wiki-article');
+  if (!articleEl) return;
+
+  const walker = document.createTreeWalker(articleEl, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+      const parent = node.parentElement;
+      if (!parent) return NodeFilter.FILTER_REJECT;
+      if (parent.closest('.wiki-meta-box, .wiki-license-footer, mark')) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+
+  const textNodes = [];
+  let cur;
+  while ((cur = walker.nextNode())) {
+    textNodes.push(cur);
+  }
+
+  textNodes.forEach(node => {
+    const text = node.nodeValue;
+    regex.lastIndex = 0;
+    if (!regex.test(text)) return;
+    regex.lastIndex = 0;
+
+    const frag = document.createDocumentFragment();
+    let lastIdx = 0;
+    let m;
+    while ((m = regex.exec(text)) !== null) {
+      if (m.index > lastIdx) {
+        frag.appendChild(document.createTextNode(text.slice(lastIdx, m.index)));
+      }
+      const mark = document.createElement('mark');
+      mark.className = 'wiki-inline-mark';
+      mark.textContent = m[0];
+      frag.appendChild(mark);
+      lastIdx = regex.lastIndex;
+      if (m[0].length === 0) break;
+    }
+    if (lastIdx < text.length) {
+      frag.appendChild(document.createTextNode(text.slice(lastIdx)));
+    }
+    node.parentNode.replaceChild(frag, node);
+  });
+}
+
+(function initWikiSearchController() {
+  const input = document.getElementById('wikiSearchInput');
+  const clearBtnEl = document.getElementById('wikiSearchClearBtn');
+  const metaEl = document.getElementById('wikiSearchMeta');
+  const resultsEl = document.getElementById('wikiSearchResults');
+  if (!input || !clearBtnEl || !metaEl || !resultsEl) return;
+
+  function hideResultsPanel() {
+    resultsEl.classList.add('hidden');
+  }
+
+  function runWikiSearch(openDropdown = true) {
+    const rawQuery = input.value.trim();
+    clearBtnEl.classList.toggle('hidden', input.value.length === 0);
+
+    if (!rawQuery) {
+      metaEl.classList.add('hidden');
+      metaEl.textContent = '';
+      resultsEl.innerHTML = '';
+      hideResultsPanel();
+      clearWikiInlineHighlights();
+      return;
+    }
+
+    const terms = toHalfWidthLower(rawQuery).split(/\s+/).filter(Boolean);
+    const rawTerms = rawQuery.split(/\s+/).filter(Boolean);
+    const displayTerms = Array.from(new Set([...rawTerms, ...terms]));
+
+    // 記事閲覧中のハイライト反映＆ページ内一致スキャン
+    applyWikiSearchHighlightsOnly();
+    const inPageMatches = [];
+    if (currentWikiArticleKey && wikiArticleContainer) {
+      const targets = wikiArticleContainer.querySelectorAll('.wiki-spec-table tr, .wiki-section');
+      targets.forEach((el, idx) => {
+        const text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+        const normText = toHalfWidthLower(text);
+        if (terms.every(t => normText.includes(t))) {
+          const isSpec = el.tagName === 'TR';
+          const headingEl = isSpec ? el.querySelector('th') : el.querySelector('h2');
+          const label = headingEl ? headingEl.textContent.trim() : `箇所 ${idx + 1}`;
+          inPageMatches.push({ el, label, snippet: makeSearchSnippet(text, terms) });
+        }
+      });
+    }
+
+    // Wiki 全体（全記事＋Navbox項目）を検索
+    const globalMatches = [];
+    wikiSearchEntries.forEach(entry => {
+      const combinedNorm = `${entry.titleNorm} ${entry.notesNorm} ${entry.bodyNorm}`;
+      if (!terms.every(t => combinedNorm.includes(t))) return;
+
+      let score = entry.hasArticle ? 10 : 0;
+      let matchedSec = null;
+      let snippetSource = entry.bodyPlain;
+
+      terms.forEach(t => {
+        if (entry.key.toLowerCase() === t) score += 120;
+        else if (entry.titleNorm.includes(t)) score += 60;
+        if (entry.notesNorm.includes(t)) score += 20;
+      });
+
+      for (const sec of entry.sections) {
+        if (terms.every(t => `${sec.headingNorm} ${sec.textNorm}`.includes(t))) {
+          if (matchedSec === null) {
+            matchedSec = sec.idx;
+            snippetSource = `${sec.heading} — ${sec.text}`;
+          }
+          if (terms.some(t => sec.headingNorm.includes(t))) score += 30;
+          else score += 8;
+        }
+      }
+
+      globalMatches.push({
+        entry,
+        score,
+        matchedSec,
+        snippet: makeSearchSnippet(snippetSource, terms)
+      });
+    });
+
+    globalMatches.sort((a, b) => b.score - a.score || a.entry.title.localeCompare(b.entry.title, 'ja'));
+    const topGlobal = globalMatches.slice(0, 25);
+
+    const parts = [];
+    if (currentWikiArticleKey) {
+      parts.push(`この記事内: ${inPageMatches.length}件`);
+    }
+    parts.push(`Wiki全体: ${globalMatches.length}件ヒット${globalMatches.length > 25 ? '（上位25件を表示）' : ''}`);
+    metaEl.textContent = parts.join(' ／ ');
+    metaEl.classList.remove('hidden');
+
+    if (!openDropdown) return;
+
+    let html = '';
+    if (currentWikiArticleKey && inPageMatches.length > 0) {
+      html += `<div class="wiki-search-group-title">📄 この記事内の一致 (${inPageMatches.length}件)</div>`;
+      html += inPageMatches.map((m, i) => `
+        <button type="button" class="wiki-search-item" data-inpage-idx="${i}">
+          <div class="wiki-search-item-head">
+            <span class="wiki-search-item-title">${highlightEscapedText(m.label, displayTerms)}</span>
+            <span class="wiki-search-badge is-ready">記事内へ移動 ↓</span>
+          </div>
+          <div class="wiki-search-snippet">${highlightEscapedText(m.snippet, displayTerms)}</div>
+        </button>
+      `).join('');
+    }
+
+    if (topGlobal.length > 0) {
+      html += `<div class="wiki-search-group-title">📚 Wiki全体からの検索結果 (${globalMatches.length}件)</div>`;
+      html += topGlobal.map((item, i) => `
+        <button type="button" class="wiki-search-item" data-global-idx="${i}">
+          <div class="wiki-search-item-head">
+            <span class="wiki-search-item-title">${highlightEscapedText(item.entry.title, displayTerms)}</span>
+            <span class="wiki-search-badge ${item.entry.hasArticle ? 'is-ready' : ''}">${escapeHtml(item.entry.categoryLabel)}</span>
+          </div>
+          <div class="wiki-search-snippet">${highlightEscapedText(item.snippet, displayTerms)}</div>
+        </button>
+      `).join('');
+    }
+
+    if (!html) {
+      html = '<div class="wiki-search-snippet" style="padding:14px;">一致する項目・記事は見つかりませんでした。</div>';
+    }
+
+    resultsEl.innerHTML = html;
+    resultsEl.classList.remove('hidden');
+
+    resultsEl.querySelectorAll('[data-inpage-idx]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-inpage-idx'), 10);
+        const target = inPageMatches[idx];
+        if (target && target.el) {
+          hideResultsPanel();
+          target.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          target.el.classList.remove('wiki-jump-flash');
+          void target.el.offsetWidth;
+          target.el.classList.add('wiki-jump-flash');
+        }
+      });
+    });
+
+    resultsEl.querySelectorAll('[data-global-idx]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-global-idx'), 10);
+        const target = topGlobal[idx];
+        if (!target) return;
+        hideResultsPanel();
+        renderInternalWikiArticle(target.entry.key, target.entry.title, target.entry.slug, target.matchedSec);
+      });
+    });
+  }
+
+  input.addEventListener('input', () => runWikiSearch(true));
+  input.addEventListener('focus', () => {
+    if (input.value.trim()) runWikiSearch(true);
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const firstBtn = resultsEl.querySelector('.wiki-search-item');
+      if (firstBtn && !resultsEl.classList.contains('hidden')) {
+        e.preventDefault();
+        firstBtn.click();
+      }
+    } else if (e.key === 'Escape') {
+      hideResultsPanel();
+    }
+  });
+
+  clearBtnEl.addEventListener('click', () => {
+    input.value = '';
+    runWikiSearch(false);
+    input.focus();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#wikiSearchBox')) {
+      hideResultsPanel();
+    }
+  });
+})();
 // ==========================================
 // Syscon ファンテーブル（p0〜p9）自動生成ツール
 // ==========================================
