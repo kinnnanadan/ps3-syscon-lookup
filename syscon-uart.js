@@ -1936,6 +1936,37 @@
         return null;
       }
 
+      if (cmd.toLowerCase() === 'becount' && client.scType === 'SW') {
+        appendLog('SYS', 'SW (Sherwood) は becount コマンド非対応のため r 800 8 を実行して算出します...');
+        const resSw = await runInteractiveCommand('r 800 8', { timeoutMs: 2500, idleMs: 120 });
+        if (resSw) {
+          const textSw = (resSw.lines && resSw.lines.length > 0) ? resSw.lines.join('\n') : (resSw.raw || '');
+          const bytesSw = parseHexBytesN(textSw, '800', 8);
+          if (bytesSw) {
+            const dec = decodeBecountBytes(bytesSw, 'be');
+            if (dec) {
+              const upStr = formatUptimeBreakdown(dec.totalSec);
+              appendLog('SYS', `📊 [SW r 800 8 解析] Bringup: ${dec.bringup} 回 / Shutdown: ${dec.shutdown} 回 / 稼働時間: ${upStr} (${dec.totalSec}秒)`);
+              const bc = {
+                bringup: dec.bringup,
+                shutdown: dec.shutdown,
+                abnormal: dec.bringup - dec.shutdown,
+                powerOn: upStr
+              };
+              lastBecount = bc;
+              if (bcPowerOnEl) bcPowerOnEl.textContent = bc.powerOn;
+              if (bcBringupEl) bcBringupEl.textContent = `${bc.bringup.toLocaleString()} 回`;
+              if (bcShutdownEl) bcShutdownEl.textContent = `${bc.shutdown.toLocaleString()} 回`;
+              if (bcAbnormalEl) {
+                bcAbnormalEl.textContent = `${bc.abnormal} 回`;
+                bcAbnormalEl.classList.toggle('becount-warn', bc.abnormal > 0);
+              }
+            }
+          }
+        }
+        return resSw;
+      }
+
       appendLog('TX', cmd);
       try {
         const lowerCmd = cmd.toLowerCase();
@@ -1997,8 +2028,8 @@
         let bc = null;
         if (client.scType === 'SW') {
           // Sherwood (SW) は becount コマンド非対応のため標準アドレス 0x800 (8バイト BE) を参照
-          const resSw = await client.command('r 800 8', { timeoutMs: 1800, idleMs: 70 });
-          const rawSw = resSw ? (resSw.raw || (resSw.lines ? resSw.lines.join('\n') : '')) : '';
+          const resSw = await client.command('r 800 8', { timeoutMs: 2500, idleMs: 120 });
+          const rawSw = resSw ? ((resSw.lines && resSw.lines.length > 0) ? resSw.lines.join('\n') : (resSw.raw || '')) : '';
           const bytesSw = parseHexBytesN(rawSw, '800', 8);
           if (bytesSw) {
             const dec = decodeBecountBytes(bytesSw, 'be');
@@ -3808,8 +3839,12 @@
 
       for (let i = 0; i < lines.length; i++) {
         let line = lines[i].split('|')[0].trim();
+        // SW 応答の末尾チェックサム (:CSUM) と先頭コメント記号 (#) を除去
+        line = line.replace(/:[0-9A-Fa-f]{2}\s*$/, '').replace(/^#\s*/, '').trim();
+        if (!line) continue;
         if (/^r\s+/i.test(line) || /^(?:\[[^\]]+\]\s*\$|>\$?|\$)$/.test(line)) continue;
         if (/^[0-9A-Fa-f]{8}$/.test(line)) continue;
+        if (/\+0\s+\+1\b/.test(line) || /^-{4,}$/.test(line)) continue;
         line = line.replace(addrPrefixRe, '');
         line = line.replace(/^[0-9A-Fa-f]{8}\s+/, '');
         line = line.replace(/^(?:OK\s+)?(?:\+?0x)?[0-9A-Fa-f]{4,8}\s*:\s*/i, '');
