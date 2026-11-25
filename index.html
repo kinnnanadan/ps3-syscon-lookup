@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PS3 修理・解析データベース</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261122-1">
 </head>
+
 <body>
   <!-- スマホ用トップバー -->
   <header class="mobile-header">
     <button id="menuToggle" class="menu-btn" aria-label="メニューを開く">☰</button>
     <span class="mobile-title">PS3 修理・解析DB</span>
     <div class="header-controls">
-      <button id="fontSizeToggleMobile" class="theme-btn-mini font-btn-mini" aria-label="文字サイズ切替" title="文字・アイコンサイズ変更">文字:中</button>
+      <button id="fontSizeToggleMobile" class="theme-btn-mini font-btn-mini" aria-label="文字サイズ切替"
+        title="文字・アイコンサイズ変更">文字:中</button>
       <button id="themeToggleMobile" class="theme-btn-mini" aria-label="テーマ切替" title="ダーク/ライト切替">🌙</button>
     </div>
   </header>
@@ -39,7 +42,7 @@
         <a href="#references" class="nav-item" data-view="references">
           <span class="nav-icon">📚</span> 参考資料・ライセンス
         </a>
-        <a href="#syscon-internal" class="nav-item expert-only" data-view="syscon-internal">
+        <a href="#syscon-internal" class="nav-item" data-view="syscon-internal">
           <span class="nav-icon">🔌</span> Syscon 内部モード
         </a>
 
@@ -49,6 +52,12 @@
         </a>
         <a href="#fan-calc" class="nav-item" data-view="fan-calc">
           <span class="nav-icon">🌀</span> ファン制御値計算
+        </a>
+        <a href="#uart-monitor" class="nav-item" data-view="uart-monitor">
+          <span class="nav-icon">⚡</span> Syscon UART 接続
+        </a>
+        <a href="#csv-viewer" class="nav-item" data-view="csv-viewer">
+          <span class="nav-icon">📊</span> CSV ログビューワー
         </a>
       </nav>
 
@@ -80,7 +89,7 @@
             本サイトは修理作業や故障切り分けの参考情報として公開していますが、記載内容の正確性・完全性を保証するものではありません。<br>
             分解・殻割り（Delid）・ハンダ付け・基板改造・Syscon設定変更などの作業は<strong>すべて自己責任</strong>にて行ってください。本サイトの情報を参考にして発生した機器の破損・データ消失・感電・火災等のいかなる損害についても、制作者は一切の責任を負いかねます。
           </div>
-          
+
           <div class="alpha-notice-box" role="note">
             <strong>🚧 本サイトは現在「α版（開発・製作途中）」です</strong><br>
             現在も機能の追加やデータの拡充を順次進めている段階のため、未収録のエラーコード・未翻訳のページが多く残っています。また、記載内容の抜け漏れや翻訳の不備・誤訳が含まれている可能性があります。<br>
@@ -112,6 +121,12 @@
                 <p>Sysconのファン速度設定や温度テーブル編集で使用する「%（0〜100%）」と「16進数（0x00〜0xFF）」を相互変換できる計算ツールです。</p>
                 <span class="tool-card-action">ツールを開く →</span>
               </a>
+
+              <a href="#uart-monitor" class="tool-link-card" data-view="uart-monitor">
+                <div class="tool-card-title">⚡ Syscon UART 接続・リアルタイム監視</div>
+                <p>Web Serial API を利用してPCのUSB-TTLアダプタと直接通信し、AUTH認証・エラーログ取得・温度/ファン速度のリアルタイム監視を行えます（実験版）。</p>
+                <span class="tool-card-action">ツールを開く →</span>
+              </a>
             </div>
 
             <h3>更新履歴</h3>
@@ -137,8 +152,10 @@
           <!-- Wiki ページ内・全体検索バー -->
           <div class="wiki-search-box" id="wikiSearchBox">
             <div class="search-input-wrapper">
-              <input type="text" id="wikiSearchInput" placeholder="Wiki内を検索 (例: RSX, 40nm, APS-226, UART, NOR, CECHAxx)" autocomplete="off">
-              <button type="button" id="wikiSearchClearBtn" class="clear-btn hidden" aria-label="Wiki検索をクリア" title="クリア">×</button>
+              <input type="text" id="wikiSearchInput" placeholder="Wiki内を検索 (例: RSX, 40nm, APS-226, UART, NOR, CECHAxx)"
+                autocomplete="off">
+              <button type="button" id="wikiSearchClearBtn" class="clear-btn hidden" aria-label="Wiki検索をクリア"
+                title="クリア">×</button>
             </div>
             <div class="wiki-search-meta hidden" id="wikiSearchMeta"></div>
             <div class="wiki-search-results hidden" id="wikiSearchResults" role="region" aria-label="Wiki検索結果"></div>
@@ -170,19 +187,23 @@
             <ul class="changelog-list">
               <li>
                 <strong>PS3 Developer Wiki（メインページ）</strong><br>
-                <a href="https://www.psdevwiki.com/ps3/" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.psdevwiki.com/ps3/</a>
+                <a href="https://www.psdevwiki.com/ps3/" target="_blank" rel="noopener noreferrer"
+                  class="wrap-link">https://www.psdevwiki.com/ps3/</a>
               </li>
               <li>
                 <strong>PS3 Developer Wiki - Syscon Error Codes（エラーコード一覧）</strong><br>
-                <a href="https://www.psdevwiki.com/ps3/Syscon_Error_Codes" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.psdevwiki.com/ps3/Syscon_Error_Codes</a>
+                <a href="https://www.psdevwiki.com/ps3/Syscon_Error_Codes" target="_blank" rel="noopener noreferrer"
+                  class="wrap-link">https://www.psdevwiki.com/ps3/Syscon_Error_Codes</a>
               </li>
               <li>
                 <strong>PS3 Developer Wiki - Syscon（UART接続・コマンド仕様）</strong><br>
-                <a href="https://www.psdevwiki.com/ps3/Syscon" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.psdevwiki.com/ps3/Syscon</a>
+                <a href="https://www.psdevwiki.com/ps3/Syscon" target="_blank" rel="noopener noreferrer"
+                  class="wrap-link">https://www.psdevwiki.com/ps3/Syscon</a>
               </li>
               <li>
                 <strong>PS3 Developer Wiki - Motherboard Revisions（基板リビジョン一覧）</strong><br>
-                <a href="https://www.psdevwiki.com/ps3/Motherboard_Revisions" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.psdevwiki.com/ps3/Motherboard_Revisions</a>
+                <a href="https://www.psdevwiki.com/ps3/Motherboard_Revisions" target="_blank" rel="noopener noreferrer"
+                  class="wrap-link">https://www.psdevwiki.com/ps3/Motherboard_Revisions</a>
               </li>
             </ul>
           </div>
@@ -195,12 +216,14 @@
 
             <h3>参照元 Wiki のライセンス（GFDL 1.2）について</h3>
             <p>
-              参考資料である <strong>PS3 Developer Wiki</strong> のコンテンツは、<strong>GNU Free Documentation License 1.2（GFDL 1.2）</strong> のもとで公開されています。
+              参考資料である <strong>PS3 Developer Wiki</strong> のコンテンツは、<strong>GNU Free Documentation License 1.2（GFDL
+                1.2）</strong> のもとで公開されています。
             </p>
             <ul class="changelog-list">
               <li>
                 <strong>GNU Free Documentation License, Version 1.2（公式原文）:</strong><br>
-                <a href="https://www.gnu.org/licenses/old-licenses/fdl-1.2.html" target="_blank" rel="noopener noreferrer" class="wrap-link">https://www.gnu.org/licenses/old-licenses/fdl-1.2.html</a>
+                <a href="https://www.gnu.org/licenses/old-licenses/fdl-1.2.html" target="_blank"
+                  rel="noopener noreferrer" class="wrap-link">https://www.gnu.org/licenses/old-licenses/fdl-1.2.html</a>
               </li>
               <li>
                 「📖 Dev Wiki 日本語版」ページ内の翻訳・翻案記事については、GFDL 1.2 の規定に基づき元ページへのリンク・翻訳履歴・ライセンス継承条件を各記事内に明記しています。
@@ -212,7 +235,7 @@
           </div>
         </section>
 
-      <!-- ==========================================
+        <!-- ==========================================
              画面: Syscon 内部モード解説 (#syscon-internal) ※上級者モード限定
              ========================================== -->
         <section id="view-syscon-internal" class="page-view">
@@ -225,7 +248,8 @@
 
           <div class="disclaimer-box" role="note">
             <strong>【警告・上級者向け情報】ブリック（起動不能）の危険性について</strong><br>
-            Syscon の内部モードでは、EEPROM の書き換え（<code>w</code>）やチェックサム変更、パッチ適用など、ハードウェア動作の根幹に関わる操作が可能です。<strong>誤ったアドレスへの書き込みやチェックサム不整合を起こすと、PS3本体が完全に起動不能（ブリック）になります。</strong><br>
+            Syscon の内部モードでは、EEPROM
+            の書き換え（<code>w</code>）やチェックサム変更、パッチ適用など、ハードウェア動作の根幹に関わる操作が可能です。<strong>誤ったアドレスへの書き込みやチェックサム不整合を起こすと、PS3本体が完全に起動不能（ブリック）になります。</strong><br>
             作業前には必ず EEPROM ダンプのバックアップを取得し、すべて自己責任にて実行してください。
           </div>
 
@@ -247,12 +271,14 @@
                   <tr>
                     <td class="mono">外部モード<br>(External)</td>
                     <td>Mullion / Sherwood 共通</td>
-                    <td>通常のUART接続時の初期状態。機能は大きく制限されており、<code>AUTH</code> コマンドによるチャレンジ＆レスポンス認証を通過しないとエラーログ閲覧や起動テストが行えません。</td>
+                    <td>通常のUART接続時の初期状態。機能は大きく制限されており、<code>AUTH</code> コマンドによるチャレンジ＆レスポンス認証を通過しないとエラーログ閲覧や起動テストが行えません。
+                    </td>
                   </tr>
                   <tr>
                     <td class="mono">内部モード<br>(Internal)</td>
                     <td>Mullion 系<br>(COK-001 〜 VER-001)</td>
-                    <td>Syscon の特定コマンド（<code>eepcsum</code>、<code>r</code> / <code>w</code> によるEEPROM直接読み書き、<code>fantbl</code> による熱制御テーブル編集など）が解放された開発・工場診断用モードです。</td>
+                    <td>Syscon の特定コマンド（<code>eepcsum</code>、<code>r</code> / <code>w</code>
+                      によるEEPROM直接読み書き、<code>fantbl</code> による熱制御テーブル編集など）が解放された開発・工場診断用モードです。</td>
                   </tr>
                 </tbody>
               </table>
@@ -266,8 +292,10 @@
             </p>
             <ul class="changelog-list">
               <li><strong>ロジック電圧:</strong> 必ず <strong>3.3V TTL</strong> を使用してください（5V を入力すると Syscon IC が即座に破損します）。</li>
-              <li><strong>配線:</strong> 基板の <code>TX</code> ↔ アダプタの <code>RX</code>、基板の <code>RX</code> ↔ アダプタの <code>TX</code>、および <code>GND</code> 同士を接続します（3.3V電源ラインは通常接続不要です）。</li>
-              <li><strong>DIAG ピン（Mullion のみ）:</strong> 内部モードを有効化・アクセスする際は、基板上の <code>DIAG</code> ランドを <code>GND</code> に落とした（ショートさせた）状態で主電源スイッチをONにします。</li>
+              <li><strong>配線:</strong> 基板の <code>TX</code> ↔ アダプタの <code>RX</code>、基板の <code>RX</code> ↔ アダプタの
+                <code>TX</code>、および <code>GND</code> 同士を接続します（3.3V電源ラインは通常接続不要です）。</li>
+              <li><strong>DIAG ピン（Mullion のみ）:</strong> 内部モードを有効化・アクセスする際は、基板上の <code>DIAG</code> ランドを <code>GND</code>
+                に落とした（ショートさせた）状態で主電源スイッチをONにします。</li>
             </ul>
 
             <div class="table-wrapper" style="margin-top: 12px;">
@@ -369,7 +397,7 @@
               </table>
             </div>
           </div>
-        </section>  
+        </section>
 
         <!-- ==========================================
              画面4: Syscon エラーコード検索 (#search)
@@ -504,102 +532,769 @@
             </div>
           </div>
 
-          <div class="readme-card" style="margin-top: 18px;">
-<!-- 自動ファンカーブ提案カード（script.js の ENABLE_AUTO_FAN_CURVE で表示/非表示を制御） -->
-          <div class="readme-card expert-only" id="autoFanCard" style="margin-top: 18px;">
-            <h2>🤖 Syscon ファンテーブル（p0〜p9）自動生成</h2>
-            <p class="site-description" style="margin-bottom: 14px;">
-              対象チップ（<code>CELL: 0</code> / <code>RSX: 1</code>）と目標上限温度を選ぶと、0.50℃刻みのヒステリシスを持たせた <code>p0</code>〜<code>p9</code> の <code>fantbl setini</code> コマンドを自動生成します。
-            </p>
+        </section>
 
-            <div class="auto-fan-controls">
-              <div class="auto-control-group">
-                <label class="calc-label">1. 設定対象（0: CELL / 1: RSX）</label>
-                <div class="preset-group" id="fanZoneGroup" style="margin-bottom: 0;">
-                  <button type="button" class="preset-btn active" data-zone="1">RSX (1)</button>
-                  <button type="button" class="preset-btn" data-zone="0">CELL (0)</button>
-                  <button type="button" class="preset-btn" data-zone="both">両方 (0 &amp; 1)</button>
+        <!-- ==========================================
+             画面6: Syscon UART 接続・リアルタイム監視 (#uart-monitor)
+             ========================================== -->
+        <section id="view-uart-monitor" class="page-view">
+          <div class="page-header">
+            <div class="uart-header-row">
+              <div>
+                <h1>⚡ <span id="uartSecretTitleText">Syscon UART 接続</span>・リアルタイム監視（実験版）</h1>
+                <p class="site-description">
+                  ブラウザの Web Serial API を使用し、USB-TTL アダプタ経由で Syscon と直接通信します。<code>time.sleep(1)</code>
+                  による固定待機を行わず、応答終端を即時判定するため高速に応答します。
+                </p>
+              </div>
+              <div class="uart-layout-controls" role="group" aria-label="パネル・コンソール配置設定">
+                <div class="uart-view-mode-tabs" role="group" aria-label="画面表示モード">
+                  <button type="button" id="uartViewModeTabBtn" class="copy-btn active"
+                    title="ブラウザのようにタブで1画面ずつ切り替え（コンソールは左右に常時表示）">📑 タブ表示</button>
+                  <button type="button" id="uartViewModeStackBtn" class="copy-btn"
+                    title="すべてのパネルを一覧・ドラッグ自由配置で表示">📋 一覧・自由配置</button>
+                </div>
+                <button type="button" id="uartDockToggleBtn" class="uart-btn">◧ コンソールを左へ</button>
+                <div id="uartWidthControl" class="uart-width-control">
+                  <label for="uartConsoleWidthSlider" class="calc-label" style="margin:0;">幅:</label>
+                  <input type="range" id="uartConsoleWidthSlider" min="300" max="780" step="10" value="440"
+                    aria-label="コンソールの横幅">
+                  <span id="uartConsoleWidthLabel" class="uart-badge">440px</span>
+                </div>
+                <button type="button" id="uartExpandAllBtn" class="copy-btn" title="最小化したパネルをすべて展開">📂 すべて展開</button>
+                <button type="button" id="uartCollapseAllBtn" class="copy-btn" title="表示中のパネルをすべて最小化">📁 すべて最小化</button>
+                <button type="button" id="uartResetLayoutBtn" class="copy-btn" title="1〜7のサイズと配置を初期状態に戻す">↺ サイズ初期化</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="uartApiWarning" class="warning-box hidden" role="alert">
+            <strong>Web Serial API が利用できません</strong><br>
+            この機能は PC 版 <strong>Google Chrome / Microsoft Edge</strong> かつ <strong>HTTPS（または localhost）環境</strong>
+            でのみ動作します。<code>file://</code> 直開きや Firefox / Safari / モバイルブラウザではポート接続を利用できません。
+          </div>
+
+          <!-- 稼働実績 ＆ リアルタイム温度・ファンサマリーバー -->
+          <div id="uartBecountBar" class="uart-becount-bar" role="region" aria-label="Syscon 稼働実績とリアルタイム温度">
+            <div class="uart-becount-top-row">
+              <div class="uart-becount-items">
+                <div class="uart-becount-item">
+                  <span class="uart-becount-label">⏱ 起動時間 (Power-on)</span>
+                  <span class="uart-becount-val" id="uartBcPowerOn">--</span>
+                </div>
+                <div class="uart-becount-item">
+                  <span class="uart-becount-label">🟢 電源オン回数 (Bringup)</span>
+                  <span class="uart-becount-val" id="uartBcBringup">--</span>
+                </div>
+                <div class="uart-becount-item">
+                  <span class="uart-becount-label">🔴 電源オフ回数 (Shutdown)</span>
+                  <span class="uart-becount-val" id="uartBcShutdown">--</span>
+                </div>
+                <div class="uart-becount-item">
+                  <span class="uart-becount-label">⚠️ 不適切なシャットダウン (差分)</span>
+                  <span class="uart-becount-val" id="uartBcAbnormal">--</span>
+                </div>
+              </div>
+              <button type="button" id="uartRefreshBecountBtn" class="copy-btn" disabled title="becount を再取得">🔄 再取得</button>
+            </div>
+            <div class="uart-becount-telemetry-row">
+              <div class="uart-becount-item">
+                <span class="uart-becount-label">🌡 CELL (CPU) 温度</span>
+                <span class="uart-becount-val uart-live-val" id="uartValCell">--</span>
+              </div>
+              <div class="uart-becount-item">
+                <span class="uart-becount-label">🌡 RSX (GPU) 温度</span>
+                <span class="uart-becount-val uart-live-val" id="uartValRsx">--</span>
+              </div>
+              <div class="uart-becount-item">
+                <span class="uart-becount-label">🌡 SB (Southbridge) 温度</span>
+                <span class="uart-becount-val uart-live-val" id="uartValSb">--</span>
+              </div>
+              <div class="uart-becount-item">
+                <span class="uart-becount-label">🌀 ファン速度 (Duty)</span>
+                <span class="uart-becount-val uart-live-val" id="uartValFan">--</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="uartSplitLayout" class="uart-split-layout">
+            <div class="uart-workspace-main">
+          <!-- ブラウザ風タブバー（タブ表示モード時に表示） -->
+          <div id="uartBrowserTabBar" class="uart-browser-tab-bar" role="tablist" aria-label="Syscon 操作タブ">
+            <button type="button" class="uart-browser-tab active" data-tab-panel="panel-conn" role="tab">1. 接続・AUTH</button>
+            <button type="button" class="uart-browser-tab" data-tab-panel="panel-chart" role="tab">2. 監視・推移グラフ</button>
+            <button type="button" class="uart-browser-tab" data-tab-panel="panel-quick" role="tab">3. クイック診断</button>
+            <button type="button" class="uart-browser-tab" data-tab-panel="panel-fanfix" role="tab">4. 一時ファン固定</button>
+            <button type="button" class="uart-browser-tab" data-tab-panel="panel-voltage" role="tab">5. 電圧変更</button>
+            <button type="button" class="uart-browser-tab" data-tab-panel="panel-fantbl-edit" role="tab">6. ファンテーブル</button>
+          </div>
+
+          <!-- 1. 接続・AUTHパネル -->
+          <div class="readme-card uart-panel" data-panel-id="panel-conn">
+            <div class="uart-card-header uart-panel-header">
+              <h2>1. シリアルポート接続 ＆ AUTH 認証</h2>
+              <div class="uart-panel-header-right">
+                <div class="uart-badges">
+                  <span id="uartStatusBadge" class="uart-badge status-off">未接続</span>
+                  <span id="uartRttBadge" class="uart-badge">応答速度: -- ms</span>
+                </div>
+                <button type="button" class="uart-minimize-btn" title="パネルを最小化" aria-expanded="true">－</button>
+              </div>
+            </div>
+
+            <div class="uart-panel-body">
+            <div class="uart-conn-controls">
+              <div class="uart-mode-tabs" role="radiogroup" aria-label="接続方式の選択">
+                <label class="uart-mode-radio">
+                  <input type="radio" name="uartConnStyle" id="uartConnStyleAuto" value="auto" checked>
+                  <span>🤖 自動モード（機種を選ぶだけ / Mullion内部モード自動有効化対応）</span>
+                </label>
+                <label class="uart-mode-radio">
+                  <input type="radio" name="uartConnStyle" id="uartConnStyleManual" value="manual">
+                  <span>🛠 手動モード（CXRF / CXR / SW を直接指定）</span>
+                </label>
+              </div>
+
+              <div id="uartAutoPanel" class="uart-field">
+                <label for="uartAutoModel" class="calc-label">対象基板・Syscon 種別</label>
+                <select id="uartAutoModel" class="uart-select">
+                  <option value="MULLION" selected>Mullion（初期型・前期型: COK-001〜SEM-001 / CECHA〜CECHK 等）</option>
+                  <option value="SW">Sherwood（中期Slim・SuperSlim: VER-001〜 / CECHL〜4000番台）</option>
+                </select>
+                <p class="site-description" style="font-size:0.78rem; margin:2px 0 0 0;">
+                  ※ <strong>Mullion</strong> を選ぶと、まず <code>CXRF (115200bps)</code> で接続を試み、未有効時は <code>CXR (57600bps)</code> で自動切換して <code>0x3961</code> の確認・有効化と電源入れ切り案内・<code>eepcsum</code> 自動修正まで順に進みます。
+                </p>
+              </div>
+
+              <div id="uartManualPanel" class="uart-field hidden">
+                <label for="uartScType" class="calc-label">接続モード（Syscon 種別）</label>
+                <select id="uartScType" class="uart-select">
+                  <option value="CXRF" selected>CXRF — Mullion 内部モード (115200 bps / 温度・ファン監視向け)</option>
+                  <option value="CXR">CXR — Mullion 外部モード (57600 bps)</option>
+                  <option value="SW">SW — Sherwood 外部モード (57600 bps)</option>
+                </select>
+
+                <label class="uart-checkbox-label" style="margin-top:6px;">
+                  <input type="checkbox" id="uartAutoAuth" checked>
+                  接続直後に自動で AUTH を実行
+                </label>
+              </div>
+
+              <div class="uart-btn-group">
+                <button type="button" id="uartConnectBtn" class="uart-btn uart-btn-primary">🔌 ポートを選択して接続</button>
+                <button type="button" id="uartAuthBtn" class="uart-btn" disabled>🔑 AUTH 認証</button>
+                <button type="button" id="uartDisconnectBtn" class="uart-btn uart-btn-danger" disabled>⛔ 切断</button>
+              </div>
+
+              <!-- Mullion 内部モード自動セットアップ案内ボックス -->
+              <div id="uartWizardBox" class="uart-wizard-box hidden" role="status">
+                <div class="uart-wizard-title" id="uartWizardTitle"></div>
+                <div class="uart-wizard-body" id="uartWizardBody"></div>
+                <div class="uart-btn-group" id="uartWizardActions" style="margin-top: 10px;"></div>
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <!-- 2. リアルタイム監視・推移グラフ ＆ 記録出力 -->
+          <div class="readme-card uart-panel" data-panel-id="panel-chart">
+            <div class="uart-card-header uart-panel-header">
+              <h2>2. リアルタイム監視・推移グラフ ＆ 記録出力</h2>
+              <div class="uart-panel-header-right">
+                <div class="uart-badges">
+                  <span id="uartPollCountBadge" class="uart-badge">記録数: 0 件</span>
+                  <span id="uartPollSweepBadge" class="uart-badge">1周取得時間: -- ms</span>
+                </div>
+                <button type="button" class="uart-minimize-btn" title="パネルを最小化" aria-expanded="true">－</button>
+              </div>
+            </div>
+
+            <div class="uart-panel-body uart-panel-body-flex">
+            <div class="uart-poll-controls">
+              <button type="button" id="uartPollToggleBtn" class="uart-btn uart-btn-primary" disabled>▶
+                リアルタイム監視を開始</button>
+              <div class="uart-inline-field">
+                <label for="uartPollInterval" class="calc-label" style="margin:0;">更新間隔:</label>
+                <select id="uartPollInterval" class="uart-select uart-select-sm">
+                  <option value="0">最速 (待機なし連続)</option>
+                  <option value="50">0.05 秒 (50 ms)</option>
+                  <option value="100">0.1 秒 (100 ms)</option>
+                  <option value="200">0.2 秒 (200 ms)</option>
+                  <option value="250">0.25 秒 (250 ms)</option>
+                  <option value="500">0.5 秒 (500 ms)</option>
+                  <option value="1000" selected>1.0 秒 (1000 ms)</option>
+                  <option value="2000">2.0 秒 (2000 ms)</option>
+                  <option value="5000">5.0 秒 (5000 ms)</option>
+                  <option value="10000">10 秒 (10000 ms)</option>
+                  <option value="30000">30 秒 (30000 ms)</option>
+                  <option value="60000">1 分 (60000 ms)</option>
+                </select>
+              </div>
+              <div id="uartPollFastHint" class="uart-poll-fast-hint hidden" role="note">
+                ※ <strong>0.1秒以下</strong>で高速取得するには、Windows デバイスマネージャー（COMポート詳細設定）の<strong>遅延タイマーを 16ms → 1ms</strong> に変更する必要があります（未変更時は約 100〜190ms が上限になります）。1ms で温度取得の値などが不安定な場合は <strong>2ms・4ms</strong> などもお試しください。
+              </div>
+            </div>
+            <div class="uart-chart-toolbar">
+              <div class="uart-series-toggles" role="group" aria-label="グラフ表示項目の切り替え">
+                <label class="uart-series-toggle series-cell">
+                  <input type="checkbox" id="uartShowCell" checked>
+                  <span class="uart-series-dot"></span>CELL
+                </label>
+                <label class="uart-series-toggle series-rsx">
+                  <input type="checkbox" id="uartShowRsx" checked>
+                  <span class="uart-series-dot"></span>RSX
+                </label>
+                <label class="uart-series-toggle series-sb">
+                  <input type="checkbox" id="uartShowSb" checked>
+                  <span class="uart-series-dot"></span>SB
+                </label>
+                <label class="uart-series-toggle series-fan">
+                  <input type="checkbox" id="uartShowFan" checked>
+                  <span class="uart-series-dot"></span>ファン (%)
+                </label>
+              </div>
+
+              <div class="uart-chart-actions">
+                <div class="uart-inline-field">
+                  <label for="uartChartWindow" class="calc-label" style="margin:0;">時間幅:</label>
+                  <select id="uartChartWindow" class="uart-select uart-select-sm">
+                    <option value="30">30 秒</option>
+                    <option value="60" selected>1 分</option>
+                    <option value="180">3 分</option>
+                    <option value="300">5 分</option>
+                    <option value="900">15 分</option>
+                    <option value="1800">30 分</option>
+                    <option value="0">すべて (全記録)</option>
+                  </select>
+                </div>
+                <div class="uart-inline-field">
+                  <label for="uartChartTimeMode" class="calc-label" style="margin:0;">横軸:</label>
+                  <select id="uartChartTimeMode" class="uart-select uart-select-sm">
+                    <option value="clock" selected>実時刻 (HH:MM:SS)</option>
+                    <option value="elapsed">経過時間 (00:00:00〜)</option>
+                  </select>
+                </div>
+                <button type="button" id="uartExportCsvBtn" class="copy-btn" disabled>📥 CSV出力</button>
+                <button type="button" id="uartExportPngBtn" class="copy-btn" disabled>🖼 グラフ保存</button>
+                <button type="button" id="uartExportHdPngBtn" class="copy-btn" disabled
+                  title="3200×1280px の高精細 PNG 画像として保存します">🖼 高解像度PNG</button>
+                <button type="button" id="uartExportUhdPngBtn" class="copy-btn" disabled
+                  title="9600×3840px の超高精細 PNG 画像として保存します">🖼 超高解像度PNG</button>
+                <button type="button" id="uartPopoutChartOnlyBtn" class="copy-btn"
+                  title="グラフ領域だけを別ウィンドウで表示します">🗗 グラフのみ別ウィンドウ</button>
+                <button type="button" id="uartClearRecordsBtn" class="copy-btn" disabled>🗑 記録クリア</button>
+              </div>
+            </div>
+
+            <div class="uart-chart-range-bar" role="group" aria-label="グラフ縦軸表示範囲の拡大設定">
+              <div class="uart-inline-field">
+                <span class="calc-label" style="margin:0;">温度範囲(℃):</span>
+                <input type="number" id="uartTempMinInput" class="uart-range-input" step="1" placeholder="自動">
+                <span>〜</span>
+                <input type="number" id="uartTempMaxInput" class="uart-range-input" step="1" placeholder="自動">
+              </div>
+              <div class="uart-inline-field">
+                <span class="calc-label" style="margin:0;">ファン範囲(%):</span>
+                <input type="number" id="uartFanMinInput" class="uart-range-input" min="0" max="100" step="5" placeholder="0">
+                <span>〜</span>
+                <input type="number" id="uartFanMaxInput" class="uart-range-input" min="0" max="100" step="5" placeholder="100">
+              </div>
+              <button type="button" id="uartResetRangeBtn" class="copy-btn" title="縦軸の表示範囲を自動に戻す">↺ 範囲リセット</button>
+              <span class="site-description" style="font-size:0.75rem; margin:0;">※ 範囲を絞っても全記録はそのまま保存されます</span>
+            </div>
+
+            <div id="uartLiveChartWrapper" class="uart-chart-wrapper">
+              <canvas id="uartChartCanvas" class="uart-chart-canvas"></canvas>
+              <div id="uartChartTooltip" class="uart-chart-tooltip hidden"></div>
+            </div>
+            <div id="uartChartStats" class="uart-chart-stats">監視を開始するとここに温度・ファン推移グラフが描画されます。</div>
+            </div>
+          </div>
+
+          <!-- 3. クイック診断・コマンド操作 -->
+          <div class="readme-card uart-panel" data-panel-id="panel-quick">
+            <div class="uart-card-header uart-panel-header">
+              <h2>3. クイック診断・コマンド操作</h2>
+              <div class="uart-panel-header-right">
+                <button type="button" class="uart-minimize-btn" title="パネルを最小化" aria-expanded="true">－</button>
+              </div>
+            </div>
+            <div class="uart-panel-body">
+            <div class="uart-quick-view-bar">
+              <span class="calc-label" style="margin:0;">表示切替:</span>
+              <div class="uart-quick-view-tabs" role="group" aria-label="コマンドボタン表示形式">
+                <button type="button" id="uartQuickViewGroupedBtn" class="copy-btn active" title="機能別にグループ分けして表示">📂 カテゴリ別表示</button>
+                <button type="button" id="uartQuickViewFlatBtn" class="copy-btn" title="すべてのボタンを1箇所に並べて表示">📋 まとめて一覧表示</button>
+              </div>
+            </div>
+
+            <div id="uartQuickBar" class="uart-quick-bar">
+              <div class="uart-quick-group">
+                <div class="uart-quick-group-title">🌡 温度・ファン系</div>
+                <div class="uart-quick-group-btns">
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="tmp 0" disabled>🌡 tmp 0 CELL温度取得</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="tmp 1" disabled>🌡 tmp 1 RSX温度取得</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="tmp 14" disabled>🌡 tmp 14 SB温度取得</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="duty get 0" disabled>🌀 duty get 0 ファン速度取得</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="fantbl get 0" disabled>📊 fantbl get 0 CELLファン設定表</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="fantbl get 1" disabled>📊 fantbl get 1 RSXファン設定表</button>
                 </div>
               </div>
 
-              <div class="auto-control-group">
-                <label class="calc-label">2. 対象モデル・RSX世代</label>
-                <div class="preset-group" id="fanChipGroup" style="margin-bottom: 0;">
-                  <button type="button" class="preset-btn active" data-chip="90nm">初期型 (90nm RSX)</button>
-                  <button type="button" class="preset-btn" data-chip="65nm">中期・Slim初期 (65nm)</button>
-                  <button type="button" class="preset-btn" data-chip="40nm">40nm換装機・後期Slim</button>
+              <div class="uart-quick-group">
+                <div class="uart-quick-group-title">⚡ 電源管理系</div>
+                <div class="uart-quick-group-btns">
+                  <button type="button" class="uart-btn uart-quick-cmd uart-btn-warn" data-cmd="powersw" data-confirm="true"
+                    disabled>🔘 powersw 電源ボタン押下(起動)</button>
+                  <button type="button" class="uart-btn uart-quick-cmd uart-btn-warn" data-cmd="bringup" data-confirm="true"
+                    disabled>⚡ bringup 強制起動シーケンス</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="ejectsw" disabled>⏏ ejectsw BDドライブ排出</button>
+                  <button type="button" class="uart-btn uart-quick-cmd uart-btn-danger" data-cmd="shutdown"
+                    data-confirm="true" disabled>⏻ shutdown 強制電源オフ</button>
                 </div>
               </div>
 
-              <div class="auto-control-group">
-                <label class="calc-label">3. 運用スタイル（プリセット）</label>
-                <div class="preset-group" id="fanStyleGroup" style="margin-bottom: 0;">
-                  <button type="button" class="preset-btn" data-style="cooling">❄️ 冷却重視</button>
-                  <button type="button" class="preset-btn active" data-style="balanced">⚖️ バランス</button>
-                  <button type="button" class="preset-btn" data-style="quiet">🤫 静音重視</button>
-                </div>
-              </div>
-
-              <div class="auto-control-group">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                  <label for="targetTempSlider" class="calc-label" style="margin:0;">4. 高負荷時の目標上限温度（p7基準・微調整可）</label>
-                  <span class="target-temp-badge" id="targetTempDisplay">67.00 ℃</span>
-                </div>
-                <input type="range" id="targetTempSlider" class="temp-slider" min="58" max="78" step="0.5" value="67">
-                <div class="slider-scale">
-                  <span>58.0℃ (超冷却)</span>
-                  <span>67.0℃ (90nm推奨上限)</span>
-                  <span>78.0℃ (静音寄り)</span>
+              <div class="uart-quick-group">
+                <div class="uart-quick-group-title">📜 ログ・EEPROM・稼働実績系</div>
+                <div class="uart-quick-group-btns">
+                  <button type="button" id="uartFetchErrlogBtn" class="uart-btn uart-btn-primary" disabled>📜
+                    エラーログ一括取得</button>
+                  <button type="button" class="uart-btn uart-quick-cmd uart-btn-danger" data-cmd="clearerrlog"
+                    data-confirm="true"
+                    data-confirm-msg="Syscon に記録されているすべてのエラーログ履歴 (errlog) を消去します。&#10;一度消去すると過去のエラーコード履歴は元に戻せません。&#10;&#10;本当に clearerrlog を実行しますか？"
+                    disabled>🧹 clearerrlog エラーログ全削除</button>
+                  <button type="button" id="uartFixEepcsumBtn" class="uart-btn uart-btn-warn" disabled>🛠
+                    eepcsum 確認＆自動修正</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="eepcsum" disabled>🔎 eepcsum チェックサム確認のみ</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="becount" disabled>⏱ becount 稼働時間・起動回数</button>
                 </div>
               </div>
             </div>
 
-            <div class="auto-summary-box" id="autoFanSummary"></div>
-
-            <!-- Syscon コマンド出力ボックス -->
-            <div class="cmd-output-wrapper">
-              <div class="cmd-output-header">
-                <span class="calc-label" style="margin:0;">Syscon 入力用コマンド（そのまま貼り付け可能）</span>
-                <button type="button" id="copyAutoFanBtn" class="copy-btn">コマンドをコピー</button>
+            <div id="uartDetectedErrors" class="uart-detected-errors hidden">
+              <div class="uart-detected-header">
+                <span>検出されたエラーコード（クリックで検索へ移動）:</span>
+                <button type="button" id="uartSearchAllErrorsBtn" class="copy-btn">🔍 すべてエラー検索で開く</button>
               </div>
-              <pre class="cmd-output-box" id="autoFanCommandBox"></pre>
+              <div id="uartDetectedErrorsList" class="preset-group" style="margin-bottom: 0;"></div>
+            </div>
+            </div>
+          </div>
+
+          <!-- 4. 一時ファン固定モード（EEPROM書き込みなし） -->
+          <div class="readme-card uart-panel" data-panel-id="panel-fanfix">
+            <div class="uart-card-header uart-panel-header">
+              <h2>4. 一時ファン固定モード（書き込みなし・電源オフまで有効）</h2>
+              <div class="uart-panel-header-right">
+                <span id="uartTempFanBadge" class="uart-badge">設定: 40% (0x66)</span>
+                <button type="button" class="uart-minimize-btn" title="パネルを最小化" aria-expanded="true">－</button>
+              </div>
             </div>
 
-            <!-- 確認用テーブル -->
-            <div class="table-wrapper" style="margin-top: 14px;">
-              <table class="ref-table">
-                <thead>
-                  <tr>
-                    <th>Step</th>
-                    <th>降温 (tempD)</th>
-                    <th>昇温 (tempU)</th>
-                    <th>16進数</th>
-                    <th>速度 (%)</th>
-                  </tr>
-                </thead>
-                <tbody id="autoFanTableBody"></tbody>
-              </table>
+            <div class="uart-panel-body">
+            <div class="disclaimer-box" style="margin-bottom: 12px;" role="note">
+              <strong>⚠️ ファン固定モードに関する注意（過熱の恐れ）</strong><br>
+              CELL / RSX の温度テーブル（<code>p0</code>）を上書きして回転数を一時固定します。<strong>低すぎる回転数（例: 20〜25%等）のまま高負荷をかけると、温度上昇にファンが追従せず CELL / RSX が過熱・熱損傷する恐れがあります。</strong>必ず上の温度監視で実温度を確認しながらご使用ください。<br>
+              ※ <code>fantbl setini</code> ではなく RAM 反映の <code>fantbl set</code> を使用するため、EEPROM への書き込み・<code>eepcsum</code> 修正は不要で、電源を切ると元の設定に戻ります。
             </div>
 
-            <p class="site-description" style="font-size:0.8rem; margin-top:10px;">
-              ※ <code>fantbl setini</code> 実行後は、必要に応じて <code>eepcsum</code> でチェックサムを確認・修正してください。実際の到達温度はグリス状態（殻割り有無）・室温により前後します。
+            <div class="uart-fanfix-controls">
+              <div class="uart-fanfix-slider-row">
+                <label for="uartTempFanSlider" class="calc-label" style="margin:0;">固定ファン速度:</label>
+                <span id="uartTempFanDisplay" class="target-temp-badge">40% (0x66)</span>
+              </div>
+              <input type="range" id="uartTempFanSlider" class="temp-slider" min="20" max="100" step="1" value="40">
+              <div class="slider-scale">
+                <span>20% (0x33 / 要注意)</span>
+                <span>40% (0x66)</span>
+                <span>70% (0xB3)</span>
+                <span>100% (0xFF / 全開)</span>
+              </div>
+
+              <div class="preset-group" style="margin-top: 8px; margin-bottom: 6px;">
+                <span class="preset-title">プリセット：</span>
+                <button type="button" class="preset-btn uart-fanfix-preset" data-pct="25">25%</button>
+                <button type="button" class="preset-btn uart-fanfix-preset" data-pct="35">35%</button>
+                <button type="button" class="preset-btn uart-fanfix-preset" data-pct="40">40%</button>
+                <button type="button" class="preset-btn uart-fanfix-preset" data-pct="50">50%</button>
+                <button type="button" class="preset-btn uart-fanfix-preset" data-pct="65">65%</button>
+                <button type="button" class="preset-btn uart-fanfix-preset" data-pct="80">80%</button>
+                <button type="button" class="preset-btn uart-fanfix-preset" data-pct="100">100%</button>
+              </div>
+
+              <div class="uart-fanfix-footer">
+                <div class="uart-inline-field">
+                  <label for="uartTempFanUpper" class="calc-label" style="margin:0;">p0 上限温度 (℃):</label>
+                  <input type="text" id="uartTempFanUpper" class="uart-cmd-mini" style="width:82px;" value="90.00"
+                    title="この温度未満まで固定速度を維持します">
+                </div>
+                <div class="uart-btn-group">
+                  <button type="button" id="uartRestoreTempFanBtn" class="uart-btn" disabled>↩ 元の制御に戻す</button>
+                  <button type="button" id="uartApplyTempFanBtn" class="uart-btn uart-btn-primary" disabled>🌀
+                    CELL / RSX 両方に一時固定を適用</button>
+                </div>
+              </div>
+              <pre id="uartTempFanPreview" class="cmd-output-box" style="margin-top: 8px; font-size: 0.78rem;"></pre>
+            </div>
+            </div>
+          </div>
+
+          <!-- 5. 電圧変更（CELL / RSX Vcore 調整） -->
+          <div class="readme-card uart-panel" data-panel-id="panel-voltage">
+            <div class="uart-card-header uart-panel-header">
+              <h2>5. 電圧変更（CELL / RSX Vcore 調整）</h2>
+              <div class="uart-panel-header-right">
+                <span id="uartVoltBadge" class="uart-badge">テーブル: 接続時に自動判定</span>
+                <button type="button" class="uart-minimize-btn" title="パネルを最小化" aria-expanded="true">－</button>
+              </div>
+            </div>
+
+            <div class="uart-panel-body">
+              <div class="disclaimer-box" style="margin-bottom: 12px;" role="note">
+                <strong>⚠️ 電圧変更に関する重大な警告（損傷・フリーズの恐れ）</strong><br>
+                ・<strong>電圧が高すぎる場合:</strong> 発熱の急増や VRM 過負荷により、<strong>CELL / RSX チップや電源回路が永久損傷（焼き付き・故障）</strong>する恐れがあります。<br>
+                ・<strong>電圧が低すぎる場合:</strong> 動作が不安定になり、<strong>起動時の YLOD・ゲーム中のフリーズ・突然のシャットダウン</strong>が発生します。<br>
+                ・本操作は <strong>EEPROM に直接書き込み</strong> を行うため、変更後は <code>eepcsum</code> の修正が必須です（起動しなくなった場合は UART から元の値または <code>FF</code> に戻して <code>eepcsum</code> を修正してください）。実行はすべて自己責任でお願いします。
+              </div>
+
+              <div class="uart-volt-controls">
+                <div class="uart-volt-top">
+                  <span class="site-description" style="margin:0; font-size:0.82rem;">
+                    ※ 接続中の Syscon（Mullion / Sherwood）を自動判定して対応テーブルを適用します。
+                  </span>
+                  <button type="button" id="uartReadVoltBtn" class="uart-btn" disabled>🔍 現在の電圧設定を読み取る</button>
+                </div>
+
+                <div id="uartVoltCurrentInfo" class="uart-volt-current">現在の設定: 未読み取り（<code>r</code> コマンドで読み取り可能）</div>
+
+                <div class="uart-volt-grid">
+                  <div class="uart-field">
+                    <label for="uartVoltCellSelect" class="calc-label">CELL (CPU) 目標電圧</label>
+                    <select id="uartVoltCellSelect" class="uart-select"></select>
+                    <div class="uart-volt-slider-box">
+                      <div class="uart-volt-slider-head">
+                        <span>スライダー調整</span>
+                        <span id="uartVoltCellSliderVal" class="uart-badge">未変更</span>
+                      </div>
+                      <input type="range" id="uartVoltCellSlider" class="temp-slider" min="0" max="61" step="1" value="30"
+                        aria-label="CELL 電圧スライダー">
+                      <div class="slider-scale">
+                        <span id="uartVoltCellMinLabel">-- V</span>
+                        <span id="uartVoltCellMaxLabel">-- V</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="uart-field">
+                    <label for="uartVoltRsxSelect" class="calc-label">RSX (GPU) 目標電圧</label>
+                    <select id="uartVoltRsxSelect" class="uart-select"></select>
+                    <div class="uart-volt-slider-box">
+                      <div class="uart-volt-slider-head">
+                        <span>スライダー調整</span>
+                        <span id="uartVoltRsxSliderVal" class="uart-badge">未変更</span>
+                      </div>
+                      <input type="range" id="uartVoltRsxSlider" class="temp-slider" min="0" max="61" step="1" value="30"
+                        aria-label="RSX 電圧スライダー">
+                      <div class="slider-scale">
+                        <span id="uartVoltRsxMinLabel">-- V</span>
+                        <span id="uartVoltRsxMaxLabel">-- V</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <label class="uart-checkbox-label">
+                  <input type="checkbox" id="uartVoltAutoCsum" checked>
+                  書き込み後に自動で <code>eepcsum</code> 確認・修正も実行する（推奨）
+                </label>
+
+                <div class="uart-btn-group">
+                  <button type="button" id="uartApplyVoltBtn" class="uart-btn uart-btn-warn" disabled>⚡ 選択した電圧を書き込む</button>
+                  <button type="button" id="uartResetVoltBtn" class="uart-btn" disabled>↩ 純正設定 (FF) に戻す</button>
+                </div>
+
+                <pre id="uartVoltPreview" class="cmd-output-box" style="margin-top: 6px; font-size: 0.78rem;"></pre>
+              </div>
+            </div>
+          </div>
+          <!-- 6. ファンテーブル ＆ 保護温度書き換え (EEPROM) -->
+          <div class="readme-card uart-panel" data-panel-id="panel-fantbl-edit">
+            <div class="uart-card-header uart-panel-header">
+              <h2>6. ファンテーブル ＆ 保護温度書き換え (EEPROM)</h2>
+              <div class="uart-panel-header-right">
+                <span id="uartFantblStatusBadge" class="uart-badge">接続時に自動取得</span>
+                <button type="button" class="uart-minimize-btn" title="パネルを最小化" aria-expanded="true">－</button>
+              </div>
+            </div>
+
+            <div class="uart-panel-body">
+              <div class="disclaimer-box" style="margin-bottom: 12px;" role="note">
+                <strong>⚠️ EEPROM 熱制御書き換えに関する注意</strong><br>
+                <code>fantbl setini</code>・<code>trp setini</code>・<code>tshutdown setini</code> は EEPROM に直接書き込むため、<strong>実行後は <code>eepcsum</code> の修正が必須</strong>です（既定で自動実行）。低すぎる回転数や高すぎる保護温度を設定すると過熱・熱損傷や 3ビープ起動不能の原因になります。
+              </div>
+
+              <div class="uart-fantbl-top-bar">
+                <div class="uart-fantbl-tabs" role="tablist" aria-label="ファンテーブル対象ゾーン">
+                  <button type="button" class="copy-btn uart-fantbl-tab active" data-zone="0">CELL (0)</button>
+                  <button type="button" class="copy-btn uart-fantbl-tab" data-zone="1">RSX (1)</button>
+                  <button type="button" class="copy-btn uart-fantbl-tab" data-zone="sb">SB (Southbridge)</button>
+                </div>
+                <div id="uartFantblSbZoneWrap" class="uart-inline-field hidden">
+                  <label for="uartFantblSbZoneSelect" class="calc-label" style="margin:0;">SB ゾーン番号:</label>
+                  <select id="uartFantblSbZoneSelect" class="uart-select uart-select-sm">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="14">14</option>
+                  </select>
+                </div>
+                <button type="button" id="uartFantblReadAllBtn" class="uart-btn" disabled>🔍 CELL / RSX / SB を再取得</button>
+              </div>
+
+              <div class="uart-fantbl-editor">
+                <div class="uart-fantbl-sidebar">
+                  <div class="uart-fantbl-col-heads">
+                    <span>段階</span>
+                    <span>デューティ%</span>
+                    <span>TempD ℃</span>
+                    <span>TempU ℃</span>
+                    <span></span>
+                  </div>
+                  <div id="uartFantblRows" class="uart-fantbl-rows"></div>
+                  <button type="button" id="uartFantblAddStageBtn" class="uart-btn" style="width:100%; margin-top:8px;">＋ 段階を追加</button>
+                  <p class="site-description" style="font-size:0.74rem; margin:6px 0 0 0;">
+                    最大 10 段階（P0〜P9）。バーの左右端をドラッグで温度範囲、中央を上下ドラッグでデューティを変更できます。
+                  </p>
+                </div>
+
+                <div class="uart-fantbl-graph-pane">
+                  <div class="uart-fantbl-zoom-bar" role="group" aria-label="ファンテーブルグラフ拡大設定">
+                    <div class="uart-btn-group">
+                      <button type="button" class="copy-btn uart-fantbl-zoom-preset active" data-tmin="0" data-tmax="100" data-dmin="0" data-dmax="105">全体 (0〜100%)</button>
+                      <button type="button" class="copy-btn uart-fantbl-zoom-preset" data-tmin="50" data-tmax="90" data-dmin="20" data-dmax="55">🔍 調整域拡大 (50〜90℃ / 20〜55%)</button>
+                      <button type="button" class="copy-btn uart-fantbl-zoom-preset" data-tmin="55" data-tmax="85" data-dmin="20" data-dmax="45">🔍 超拡大 (55〜85℃ / 20〜45%)</button>
+                    </div>
+                    <div class="uart-fantbl-zoom-inputs">
+                      <div class="uart-inline-field">
+                        <span class="calc-label" style="margin:0;">温度(℃):</span>
+                        <input type="number" id="uartFantblTempMin" class="uart-range-input" min="0" max="95" step="5" value="0">
+                        <span>〜</span>
+                        <input type="number" id="uartFantblTempMax" class="uart-range-input" min="5" max="100" step="5" value="100">
+                      </div>
+                      <div class="uart-inline-field">
+                        <span class="calc-label" style="margin:0;">デューティ(%):</span>
+                        <input type="number" id="uartFantblDutyMin" class="uart-range-input" min="0" max="95" step="5" value="0">
+                        <span>〜</span>
+                        <input type="number" id="uartFantblDutyMax" class="uart-range-input" min="5" max="105" step="5" value="105">
+                      </div>
+                      <button type="button" id="uartFantblResetZoomBtn" class="copy-btn" title="拡大表示を全体に戻す">↺ リセット</button>
+                    </div>
+                  </div>
+                  <div class="uart-fantbl-graph-hint">各バーは1段階です。端をドラッグで温度範囲、中央でデューティ変更（ホイールで拡大縮小・ダブルクリックで全体表示）</div>
+                  <div class="uart-fantbl-canvas-wrap">
+                    <canvas id="uartFantblCanvas" class="uart-fantbl-canvas"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <div class="uart-fantbl-trp-box">
+                <div class="uart-fantbl-subhead">🌡 警告温度 (<code>trp</code>) ＆ 強制シャットダウン温度 (<code>tshutdown</code>)</div>
+                <div class="uart-fantbl-trp-grid">
+                  <div class="uart-fantbl-trp-card">
+                    <strong>CELL (ゾーン 0)</strong>
+                    <div class="uart-inline-field">
+                      <label for="uartTrp0Input" class="calc-label" style="margin:0;">警告 trp (℃):</label>
+                      <input type="number" id="uartTrp0Input" class="uart-range-input" step="0.5" min="40" max="105" placeholder="--">
+                      <label for="uartTshut0Input" class="calc-label" style="margin:0;">強制終了 tshutdown (℃):</label>
+                      <input type="number" id="uartTshut0Input" class="uart-range-input" step="0.5" min="50" max="115" placeholder="--">
+                    </div>
+                  </div>
+                  <div class="uart-fantbl-trp-card">
+                    <strong>RSX (ゾーン 1)</strong>
+                    <div class="uart-inline-field">
+                      <label for="uartTrp1Input" class="calc-label" style="margin:0;">警告 trp (℃):</label>
+                      <input type="number" id="uartTrp1Input" class="uart-range-input" step="0.5" min="40" max="105" placeholder="--">
+                      <label for="uartTshut1Input" class="calc-label" style="margin:0;">強制終了 tshutdown (℃):</label>
+                      <input type="number" id="uartTshut1Input" class="uart-range-input" step="0.5" min="50" max="115" placeholder="--">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <label class="uart-checkbox-label" style="margin-top:10px;">
+                <input type="checkbox" id="uartFantblAutoCsum" checked>
+                書き換え後に自動で <code>eepcsum</code> 確認・修正を実行する（推奨・標準）
+              </label>
+
+              <div class="uart-btn-group" style="margin-top:10px;">
+                <button type="button" id="uartFantblWriteZoneBtn" class="uart-btn uart-btn-warn" disabled>💾 表示中のファンテーブルを書き込む (fantbl setini)</button>
+                <button type="button" id="uartFantblWriteTrpBtn" class="uart-btn uart-btn-danger" disabled>🌡 trp / tshutdown を書き込む</button>
+              </div>
+
+              <div class="uart-fantbl-paste-box">
+                <label for="uartFantblPasteInput" class="calc-label">📋 コマンド貼り付け一括書き換え（<code>fantbl setini</code> / <code>trp setini</code> / <code>tshutdown setini</code>）</label>
+                <textarea id="uartFantblPasteInput" class="uart-fantbl-textarea" rows="5" placeholder="fantbl setini 1 p0 00.00 62.00 0x40&#10;fantbl setini 1 p1 57.00 59.00 0x41&#10;...&#10;trp setini 1 80&#10;tshutdown setini 1 85"></textarea>
+                <div class="uart-btn-group" style="margin-top:8px;">
+                  <button type="button" id="uartFantblLoadPasteBtn" class="uart-btn">📥 上の表・グラフに読み込む</button>
+                  <button type="button" id="uartFantblExecPasteBtn" class="uart-btn uart-btn-warn" disabled>⚡ 貼り付けたコマンドを実行 (＋eepcsum)</button>
+                </div>
+              </div>
+
+              <pre id="uartFantblPreview" class="cmd-output-box" style="margin-top:10px; font-size:0.78rem;"></pre>
+            </div>
+          </div>
+            </div><!-- /.uart-workspace-main -->
+
+            <div id="uartResizer" class="uart-resizer hidden" role="separator" aria-orientation="vertical"
+              title="左右にドラッグしてコンソール横幅を調整"></div>
+
+            <!-- 7. 対話コンソール -->
+            <div class="uart-console-pane">
+              <div class="readme-card uart-console-card uart-panel" data-panel-id="panel-console">
+                <div class="uart-card-header uart-panel-header">
+                  <h2>7. 対話コンソール（生コマンド送受信）</h2>
+                  <div class="uart-panel-header-right">
+                    <div class="uart-btn-group">
+                      <label class="uart-bootlog-toggle" title="電源オン・YLOD時に Syscon が自発出力する起動/エラーログをリアルタイム表示します（温度監視中も両立可能）">
+                        <input type="checkbox" id="uartBootLogToggle" checked>
+                        <span>📡 起動/YLODログ監視</span>
+                      </label>
+                      <button type="button" id="uartDockConsoleBtn" class="copy-btn" title="コンソールの配置を切り替え">◨ 右端に固定</button>
+                      <button type="button" id="uartDownloadLogBtn" class="copy-btn">💾 ログ保存</button>
+                      <button type="button" id="uartClearLogBtn" class="copy-btn">🗑 クリア</button>
+                    </div>
+                    <button type="button" class="uart-minimize-btn" title="パネルを最小化" aria-expanded="true">－</button>
+                  </div>
+                </div>
+
+                <div class="uart-panel-body uart-panel-body-flex">
+                <div id="uartTerminalLog" class="uart-terminal" role="log" aria-live="polite"></div>
+
+                <div class="uart-input-row">
+                  <span class="uart-prompt">&gt;$</span>
+                  <input type="text" id="uartCommandInput" class="uart-cmd-input"
+                    placeholder="コマンドを入力 (例: errlog, tmp 0, r 0000 100) ※ ↑↓で履歴・空Enterでプロンプト/ログ受信" autocomplete="off" disabled>
+                  <button type="button" id="uartSendBtn" class="uart-btn uart-btn-primary" disabled>送信</button>
+                </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- /.uart-split-layout -->
+        </section>
+
+        <!-- ==========================================
+             画面7: CSV ログビューワー (#csv-viewer)
+             ========================================== -->
+        <section id="view-csv-viewer" class="page-view">
+          <div class="page-header">
+            <h1>📊 CSV ログビューワー</h1>
+            <p class="site-description">
+              Syscon UART 接続で保存した CSV ファイルを読み込み、リアルタイム監視と同じグラフ形式で全幅・全画面確認できます。
             </p>
           </div>
 
+          <div class="readme-card uart-csv-viewer-card" id="uartCsvViewerCard">
+            <div class="uart-card-header">
+              <h2>温度・ファン推移グラフ（CSV 再生・範囲解析）</h2>
+              <div class="uart-panel-header-right">
+                <span id="uartCsvViewerBadge" class="uart-badge">未読込</span>
+                <button type="button" id="uartCsvFullscreenBtn" class="uart-btn" title="グラフを全画面で表示します">⛶ 全画面表示</button>
+              </div>
+            </div>
+
+            <div class="uart-chart-toolbar">
+              <div class="uart-series-toggles" role="group" aria-label="CSVグラフ表示項目の切り替え">
+                <label class="uart-series-toggle series-cell">
+                  <input type="checkbox" id="uartCsvShowCell" checked>
+                  <span class="uart-series-dot"></span>CELL
+                </label>
+                <label class="uart-series-toggle series-rsx">
+                  <input type="checkbox" id="uartCsvShowRsx" checked>
+                  <span class="uart-series-dot"></span>RSX
+                </label>
+                <label class="uart-series-toggle series-sb">
+                  <input type="checkbox" id="uartCsvShowSb" checked>
+                  <span class="uart-series-dot"></span>SB
+                </label>
+                <label class="uart-series-toggle series-fan">
+                  <input type="checkbox" id="uartCsvShowFan" checked>
+                  <span class="uart-series-dot"></span>ファン (%)
+                </label>
+              </div>
+
+              <div class="uart-chart-actions">
+                <button type="button" id="uartImportCsvBtn" class="uart-btn uart-btn-primary">📂 CSVファイルを開く</button>
+                <input type="file" id="uartImportCsvInput" accept=".csv,text/csv" class="hidden">
+                <div class="uart-inline-field">
+                  <label for="uartCsvTimeMode" class="calc-label" style="margin:0;">横軸:</label>
+                  <select id="uartCsvTimeMode" class="uart-select uart-select-sm">
+                    <option value="elapsed" selected>経過時間 (00:00:00〜)</option>
+                    <option value="clock">実時刻 (HH:MM:SS)</option>
+                  </select>
+                </div>
+                <button type="button" id="uartCsvExportPngBtn" class="copy-btn" disabled>🖼 グラフ保存</button>
+                <button type="button" id="uartCsvExportHdPngBtn" class="copy-btn" disabled
+                  title="3200×1280px の高精細 PNG 画像として保存します">🖼 高解像度PNG</button>
+                <button type="button" id="uartCsvExportUhdPngBtn" class="copy-btn" disabled
+                  title="9600×3840px の超高精細 PNG 画像として保存します">🖼 超高解像度PNG</button>
+                <button type="button" id="uartCsvClearBtn" class="copy-btn" disabled>🗑 クリア</button>
+              </div>
+            </div>
+
+            <div class="uart-chart-range-bar" role="group" aria-label="CSVグラフ時間・縦軸表示範囲設定">
+              <div class="uart-inline-field">
+                <span class="calc-label" style="margin:0;">時間範囲:</span>
+                <input type="text" id="uartCsvTimeStartInput" class="uart-range-input uart-time-input" placeholder="00:00:00"
+                  title="開始時間（例: 00:05:00 または 300）">
+                <span>〜</span>
+                <input type="text" id="uartCsvTimeEndInput" class="uart-range-input uart-time-input" placeholder="末尾"
+                  title="終了時間（例: 00:15:00 または 900）">
+                <button type="button" id="uartCsvResetTimeRangeBtn" class="copy-btn" title="時間範囲を全範囲に戻す">↺ 全範囲</button>
+              </div>
+              <div class="uart-inline-field">
+                <span class="calc-label" style="margin:0;">温度範囲(℃):</span>
+                <input type="number" id="uartCsvTempMinInput" class="uart-range-input" step="1" placeholder="自動">
+                <span>〜</span>
+                <input type="number" id="uartCsvTempMaxInput" class="uart-range-input" step="1" placeholder="自動">
+              </div>
+              <div class="uart-inline-field">
+                <span class="calc-label" style="margin:0;">ファン範囲(%):</span>
+                <input type="number" id="uartCsvFanMinInput" class="uart-range-input" min="0" max="100" step="5" placeholder="0">
+                <span>〜</span>
+                <input type="number" id="uartCsvFanMaxInput" class="uart-range-input" min="0" max="100" step="5" placeholder="100">
+              </div>
+              <button type="button" id="uartCsvResetRangeBtn" class="copy-btn" title="縦軸の表示範囲を自動に戻す">↺ 縦軸リセット</button>
+            </div>
+
+            <div class="uart-csv-drop-hint">
+              💡 ここに CSV ファイルをドラッグ＆ドロップしても開けます ／ マウス操作: <strong>ドラッグで時間範囲拡大</strong>・<strong>ホイールで拡大縮小</strong>・<strong>Shift+ドラッグで左右移動</strong>・<strong>ダブルクリックで全範囲</strong>
+            </div>
+
+            <div id="uartCsvChartWrapper" class="uart-chart-wrapper uart-csv-chart-wrapper">
+              <canvas id="uartCsvChartCanvas" class="uart-chart-canvas"></canvas>
+              <div id="uartCsvChartTooltip" class="uart-chart-tooltip hidden"></div>
+            </div>
+
+            <div id="uartCsvChartStats" class="uart-chart-stats">
+              「📂 CSVファイルを開く」またはドラッグ＆ドロップで CSV を読み込むと、ここに全幅グラフと統計（最小・平均・最大）が表示されます。
+            </div>
+          </div>
+        </section>
+
         <footer class="site-footer">
           <p>
-            参考資料: <a href="https://www.psdevwiki.com/ps3/" target="_blank" rel="noopener noreferrer">PS3 Developer Wiki</a> /
+            参考資料: <a href="https://www.psdevwiki.com/ps3/" target="_blank" rel="noopener noreferrer">PS3 Developer
+              Wiki</a> /
             <a href="#references">参考資料・ライセンス詳細</a>
           </p>
           <p class="footer-version-line">
             <span>PS3 修理・解析データベース (α版)</span>
-            <button type="button" id="disableExpertBtn" class="disable-expert-btn expert-only">🔓 上級者モード解除</button>
           </p>
         </footer>
       </div>
     </main>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=20261122-1"></script>
+  <script src="syscon-uart.js?v=20261122-1"></script>
 </body>
+
 </html>

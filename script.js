@@ -92,10 +92,40 @@ if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
 // --- 画面切り替え（ルーター）処理 ---
 const navItems = document.querySelectorAll('.nav-item');
 const pageViews = document.querySelectorAll('.page-view');
+const ENABLE_SYSCON_INTERNAL_PAGE = false;
+let currentActiveView = 'home';
+let uartDisclaimerAccepted = false;
 
 function switchView(viewName) {
   const targetView = document.getElementById(`view-${viewName}`);
-  const activeName = targetView ? viewName : 'home';
+  let activeName = targetView ? viewName : 'home';
+
+  if (activeName === 'syscon-internal' && !ENABLE_SYSCON_INTERNAL_PAGE) {
+    activeName = 'home';
+  }
+
+  if (activeName === 'uart-monitor' && !uartDisclaimerAccepted) {
+    const agreed = window.confirm(
+      '【重要・免責事項】Syscon UART 接続機能について\n\n' +
+      '本機能は Web Serial API を使用して PS3 の Syscon と直接通信を行います。\n' +
+      '・必ず 3.3V TTL アダプタを使用してください（5V 印加は破損の原因になります）。\n' +
+      '・EEPROM 書き換え（w / fantbl setini 等）や電圧変更の操作を誤ると、PS3 本体が起動不能（ブリック）になる恐れがあります。\n' +
+      '・作業前の EEPROM バックアップ取得を強く推奨します。\n\n' +
+      '本機能の使用により発生したいかなる損害についても、制作者は一切の責任を負いません。\n' +
+      'すべて自己責任で利用することに同意して画面を開きますか？'
+    );
+    if (!agreed) {
+      const fallback = (currentActiveView && currentActiveView !== 'uart-monitor') ? currentActiveView : 'home';
+      if (window.location.hash !== `#${fallback}`) {
+        history.replaceState(null, '', `#${fallback}`);
+      }
+      activeName = fallback;
+    } else {
+      uartDisclaimerAccepted = true;
+    }
+  }
+
+  currentActiveView = activeName;
 
   pageViews.forEach(view => {
     view.classList.toggle('active', view.id === `view-${activeName}`);
@@ -1661,391 +1691,11 @@ function applyWikiSearchHighlightsOnly() {
   });
 })();
 // ==========================================
-// Syscon ファンテーブル（p0〜p9）自動生成ツール
+// Syscon 内部モードページの公開フラグ制御
 // ==========================================
-// ▼ この機能をページに表示する場合は true、隠す場合は false に変更してください ▼
-const ENABLE_AUTO_FAN_CURVE = true;
-
-(function initAutoFanGenerator() {
-  const cardEl = document.getElementById('autoFanCard');
-  if (!cardEl) return;
-
-  // フラグが false の場合は非表示のまま処理を終了
-  if (!ENABLE_AUTO_FAN_CURVE) {
-    cardEl.style.display = 'none';
-    return;
-  }
-  cardEl.style.display = 'block';
-
-  const zoneBtns = document.querySelectorAll('#fanZoneGroup .preset-btn');
-  const chipBtns = document.querySelectorAll('#fanChipGroup .preset-btn');
-  const styleBtns = document.querySelectorAll('#fanStyleGroup .preset-btn');
-  const tempSlider = document.getElementById('targetTempSlider');
-  const tempDisplay = document.getElementById('targetTempDisplay');
-  const summaryBox = document.getElementById('autoFanSummary');
-  const commandBox = document.getElementById('autoFanCommandBox');
-  const tableBody = document.getElementById('autoFanTableBody');
-  const copyBtn = document.getElementById('copyAutoFanBtn');
-
-  let selectedZone = '1'; // '1': RSX, '0': CELL, 'both': 両方
-  let selectedChip = '90nm';
-  let selectedStyle = 'balanced';
-
-  const defaultTargets = {
-    '90nm': { cooling: 63.0, balanced: 67.0, quiet: 70.0 },
-    '65nm': { cooling: 65.0, balanced: 70.0, quiet: 74.0 },
-    '40nm': { cooling: 66.0, balanced: 72.0, quiet: 76.0 }
-  };
-
-  function fmtTemp(val) {
-    const snapped = Math.round(val * 2) / 2;
-    return snapped.toFixed(2).padStart(5, '0');
-  }
-
-  function pctToPwm(pct) {
-    const clamped = Math.max(20, Math.min(100, pct));
-    const dec = Math.round((clamped / 100) * 255);
-    const hex = '0x' + dec.toString(16).toLowerCase().padStart(2, '0');
-    const actualPct = ((dec / 255) * 100).toFixed(1);
-    return { dec, hex, actualPct };
-  }
-
-  function generateFanCurve() {
-    const targetTemp = parseFloat(tempSlider.value);
-    tempDisplay.textContent = `${fmtTemp(targetTemp)} ℃`;
-
-    // 基準67℃からの差分に応じてPWM全体をシフト
-    const heatOffset = 67.0 - targetTemp;
-    const chipBoost = selectedChip === '90nm' ? 2.0 : (selectedChip === '65nm' ? 0.5 : 0);
-
-    // p0〜p8 の目標パーセント算出（p0は最低20%以上、滑らかに上昇）
-    const baseP0 = Math.max(20, Math.min(34, 24.5 + heatOffset * 0.6 + chipBoost));
-    const baseP7 = Math.max(baseP0 + 6, Math.min(72, 32.2 + heatOffset * 1.4 + chipBoost));
-    const baseP8 = Math.max(baseP7 + 2.5, Math.min(82, baseP7 + 3.0 + Math.max(0, heatOffset * 0.2)));
-
-    // p0〜p7 まで緩やかな二次曲線で補間
-    const pctList = [];
-    for (let i = 0; i <= 7; i++) {
-      const ratio = Math.pow(i / 7, 1.35);
-      pctList.push(baseP0 + (baseP7 - baseP0) * ratio);
-    }
-    pctList.push(baseP8); // p8
-    pctList.push(100);    // p9 (0xff)
-
-    // 温度しきい値（p7 の tempU = targetTemp を基準に 0.50℃ 刻みで逆算）
-    const u0 = targetTemp - 5.0;
-    const u1 = targetTemp - 8.0;
-    const u2 = targetTemp - 7.0;
-    const u3 = targetTemp - 6.0;
-    const u4 = targetTemp - 5.0;
-    const u5 = targetTemp - 4.0;
-    const u6 = targetTemp - 2.0;
-    const u7 = targetTemp;
-    const u8 = targetTemp + 3.0;
-    const u9 = selectedChip === '90nm' ? 80.0 : 85.0;
-
-    const rawSteps = [
-      { p: 'p0', d: 0.0,      u: u0 },
-      { p: 'p1', d: u1 - 2.0, u: u1 },
-      { p: 'p2', d: u2 - 1.5, u: u2 },
-      { p: 'p3', d: u3 - 1.5, u: u3 },
-      { p: 'p4', d: u4 - 2.0, u: u4 },
-      { p: 'p5', d: u5 - 2.0, u: u5 },
-      { p: 'p6', d: u6 - 3.0, u: u6 },
-      { p: 'p7', d: u7 - 3.5, u: u7 },
-      { p: 'p8', d: u8 - 4.0, u: u8 },
-      { p: 'p9', d: u0,       u: u9 }
-    ];
-
-    const steps = rawSteps.map((st, idx) => {
-      const pwm = pctToPwm(pctList[idx]);
-      return {
-        p: st.p,
-        tempD: fmtTemp(st.d),
-        tempU: fmtTemp(st.u),
-        hex: pwm.hex,
-        pct: pwm.actualPct
-      };
-    });
-
-    // コマンド文字列生成
-    const zones = selectedZone === 'both' ? ['0', '1'] : [selectedZone];
-    const cmdLines = [];
-    zones.forEach((z, zIdx) => {
-      if (zones.length > 1) {
-        cmdLines.push(z === '0' ? '# --- CELL (0) ---' : '\n# --- RSX (1) ---');
-      }
-      steps.forEach(s => {
-        cmdLines.push(`fantbl setini ${z} ${s.p} ${s.tempD} ${s.tempU} ${s.hex}`);
-      });
-    });
-    const commandText = cmdLines.join('\n');
-    commandBox.textContent = commandText;
-
-    // 解説メッセージ
-    const targetName = selectedZone === '1' ? 'RSX (1)' : (selectedZone === '0' ? 'CELL (0)' : 'CELL (0) & RSX (1)');
-    if (selectedChip === '90nm' && targetTemp >= 70.5) {
-      summaryBox.innerHTML = `⚠️ <strong>注意（90nm RSX）:</strong> 90nm世代のRSXは70℃を超えるとバンプ劣化（3034）のリスクが高まります。RSX側の目標温度は <strong>65.00〜68.00℃以下</strong> を推奨します。`;
-    } else {
-      summaryBox.innerHTML = `✅ <strong>対象: ${targetName}（${selectedChip}）</strong> ／ <strong>p7（${fmtTemp(targetTemp)}℃）で ${steps[7].hex}（${steps[7].pct}%）</strong> に到達し、p8（${steps[8].tempU}℃）で <strong>${steps[8].hex}（${steps[8].pct}%）</strong>、p9（${steps[9].tempU}℃）でフル回転（<code>0xff</code>）に入る10段階カーブです。`;
-    }
-
-    // 確認テーブル描画
-    tableBody.innerHTML = steps.map(s => `
-      <tr>
-        <td class="mono">${s.p}</td>
-        <td class="mono">${s.tempD} ℃</td>
-        <td class="mono">${s.tempU} ℃</td>
-        <td class="mono">${s.hex}</td>
-        <td class="mono">${s.pct}%</td>
-      </tr>
-    `).join('');
-  }
-
-  zoneBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      zoneBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedZone = btn.getAttribute('data-zone');
-      // CELL (0) 単体選択時はやや高め、RSX (1) 時はRSX基準のデフォルト値へ調整
-      const base = defaultTargets[selectedChip][selectedStyle];
-      tempSlider.value = (selectedZone === '0' && selectedChip === '90nm') ? Math.min(78, base + 3.0) : base;
-      generateFanCurve();
-    });
-  });
-
-  chipBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      chipBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedChip = btn.getAttribute('data-chip');
-      const base = defaultTargets[selectedChip][selectedStyle];
-      tempSlider.value = (selectedZone === '0' && selectedChip === '90nm') ? Math.min(78, base + 3.0) : base;
-      generateFanCurve();
-    });
-  });
-
-  styleBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      styleBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedStyle = btn.getAttribute('data-style');
-      const base = defaultTargets[selectedChip][selectedStyle];
-      tempSlider.value = (selectedZone === '0' && selectedChip === '90nm') ? Math.min(78, base + 3.0) : base;
-      generateFanCurve();
-    });
-  });
-
-  tempSlider.addEventListener('input', generateFanCurve);
-
-  if (copyBtn) {
-    copyBtn.addEventListener('click', () => {
-      const text = commandBox.textContent || '';
-      if (!text) return;
-      navigator.clipboard.writeText(text).then(() => {
-        const orig = copyBtn.textContent;
-        copyBtn.textContent = 'コピー完了!';
-        setTimeout(() => { copyBtn.textContent = orig; }, 1200);
-      });
-    });
-  }
-
-  generateFanCurve();
-})();
-// ==========================================
-// 上級者モード（サイレント解放 ＋ 別途保存コマンド）制御
-// ==========================================
-(function initExpertMode() {
-  const rootEl = document.documentElement;
-  const disableBtn = document.getElementById('disableExpertBtn');
-  const autoFanCard = document.getElementById('autoFanCard');
-  const navLinks = document.querySelectorAll('.sidebar-nav .nav-item');
-
-  if (autoFanCard) {
-    autoFanCard.style.display = '';
-  }
-
-  // 保存済みの設定がある場合のみ復元
-  if (localStorage.getItem('expertMode') === 'true') {
-    rootEl.setAttribute('data-expert-mode', 'true');
-  }
-
-  // 1. 一時解放コマンド：「TOP・はじめに」5回 → 「Dev Wiki 日本語版」5回（途中の通知なし）
-  const UNLOCK_SEQUENCE = [
-    { view: 'home', count: 5 },
-    { view: 'wiki', count: 5 }
-  ];
-
-  // 2. ブラウザ保存コマンド：上級者モード有効中に「参考資料・ライセンス」を10回
-  const PERSIST_VIEW = 'references';
-  const PERSIST_COUNT = 10;
-
-  let stepIndex = 0;
-  let currentCount = 0;
-  let persistCount = 0;
-  let resetTimer = null;
-
-  function showToast(msg) {
-    let toast = document.getElementById('expertToast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.id = 'expertToast';
-      toast.className = 'expert-toast';
-      document.body.appendChild(toast);
-    }
-    toast.textContent = msg;
-    toast.style.display = 'block';
-    clearTimeout(toast._hideTimer);
-    toast._hideTimer = setTimeout(() => {
-      toast.style.display = 'none';
-    }, 2400);
-  }
-
-  function resetAllCounters() {
-    stepIndex = 0;
-    currentCount = 0;
-    persistCount = 0;
-  }
-
-  navLinks.forEach(link => {
-    link.addEventListener('click', () => {
-      const clickedView = link.getAttribute('data-view');
-      const isExpertActive = rootEl.getAttribute('data-expert-mode') === 'true';
-      const isAlreadySaved = localStorage.getItem('expertMode') === 'true';
-
-      clearTimeout(resetTimer);
-      // 4秒間操作がなければカウントをリセット
-      resetTimer = setTimeout(resetAllCounters, 4000);
-
-      // --- パターンA: まだ上級者モードが有効化されていない場合（一時解放判定） ---
-      if (!isExpertActive) {
-        const expectedStep = UNLOCK_SEQUENCE[stepIndex];
-
-        if (clickedView === expectedStep.view) {
-          currentCount++;
-
-          // スマホ表示時：3回目以降はメニューが閉じないよう開き直す
-          if (currentCount >= 3 && typeof openSidebar === 'function' && window.innerWidth <= 768) {
-            setTimeout(openSidebar, 10);
-          }
-
-          if (currentCount >= expectedStep.count) {
-            stepIndex++;
-            currentCount = 0;
-
-            // 全ステップ完了（途中ステップ完了時は何も出さない）
-            if (stepIndex >= UNLOCK_SEQUENCE.length) {
-              resetAllCounters();
-              if (typeof closeSidebar === 'function') closeSidebar();
-
-              setTimeout(() => {
-                const agreed = window.confirm(
-                  '【上級者向け機能の表示確認】\n\n' +
-                  'これより先は、Sysconの熱制御テーブル書き換え（fantbl setini）など、設定やコマンドを誤るとPS3本体が起動不能（ブリック）になる可能性がある応用機能が含まれます。\n\n' +
-                  'リスクを理解したうえで、このセッション中のみ上級者向け機能を表示しますか？\n' +
-                  '（※ページを再読み込みすると自動的に非表示へ戻ります）'
-                );
-
-                if (agreed) {
-                  rootEl.setAttribute('data-expert-mode', 'true');
-                  showToast('🔓 上級者モードを有効にしました（再読み込みで戻ります）');
-                }
-              }, 50);
-            }
-          }
-        } else {
-          resetAllCounters();
-          if (clickedView === UNLOCK_SEQUENCE[0].view) {
-            currentCount = 1;
-          }
-        }
-        return;
-      }
-
-      // --- パターンB: 上級者モード有効中かつ未保存の場合（永続保存判定） ---
-      if (isExpertActive && !isAlreadySaved) {
-        if (clickedView === PERSIST_VIEW) {
-          persistCount++;
-
-          if (persistCount >= 3 && typeof openSidebar === 'function' && window.innerWidth <= 768) {
-            setTimeout(openSidebar, 10);
-          }
-
-          if (persistCount >= PERSIST_COUNT) {
-            resetAllCounters();
-            if (typeof closeSidebar === 'function') closeSidebar();
-
-            setTimeout(() => {
-              const agreedSave = window.confirm(
-                '【警告：上級者モードの常時有効化（ブラウザ保存）】\n\n' +
-                '上級者向け機能の表示状態をこのブラウザに保存します。\n' +
-                '保存すると、次回以降このサイトを開いた際も確認メッセージなしで危険度の高いSyscon書き換え用コマンド生成機能が常に表示された状態になります。\n\n' +
-                '・誤ったコマンドの実行はPS3の完全な起動不能（ブリック）を招きます。\n' +
-                '・他人に端末を操作される場合や、誤操作のリスクを十分に理解していますか？\n\n' +
-                '本当に上級者モードをブラウザに保存して常時表示にしますか？'
-              );
-
-              if (agreedSave) {
-                localStorage.setItem('expertMode', 'true');
-                showToast('💾 上級者モードをブラウザに保存しました');
-              }
-            }, 50);
-          }
-        } else {
-          persistCount = 0;
-        }
-      }
-    });
-  });
-
-  // 解除ボタン（一時有効・ブラウザ保存のどちらの状態からも即座に解除）
-  if (disableBtn) {
-    disableBtn.addEventListener('click', () => {
-      rootEl.removeAttribute('data-expert-mode');
-      localStorage.removeItem('expertMode');
-      resetAllCounters();
-      showToast('🔒 上級者モードを解除しました');
-    });
-  }
-})();
-// ==========================================
-// Syscon 内部モードページの公開フラグ ＆ アクセス保護制御
-// ==========================================
-// ▼ true にすると上級者モード時に表示、false にすると上級者モードでも完全に非表示になります ▼
-const ENABLE_SYSCON_INTERNAL_PAGE = false;
-
-(function protectExpertViews() {
-  const EXPERT_VIEWS = ['syscon-internal'];
+(function initInternalPageVisibility() {
   const sysconNavLink = document.querySelector('.sidebar-nav .nav-item[data-view="syscon-internal"]');
-
-  // 公開フラグが false の場合はサイドバーのリンクを強制非表示にする
   if (!ENABLE_SYSCON_INTERNAL_PAGE && sysconNavLink) {
     sysconNavLink.style.display = 'none';
-  }
-
-  function enforceExpertViewGuard() {
-    const currentHash = window.location.hash.replace('#', '');
-    if (!EXPERT_VIEWS.includes(currentHash)) return;
-
-    const isExpert = document.documentElement.getAttribute('data-expert-mode') === 'true';
-    const isPageEnabled = (currentHash === 'syscon-internal') ? ENABLE_SYSCON_INTERNAL_PAGE : true;
-
-    // 公開フラグが false、または上級者モードが無効な場合は TOP へ戻す
-    if (!isPageEnabled || !isExpert) {
-      window.location.hash = '#home';
-    }
-  }
-
-  window.addEventListener('hashchange', enforceExpertViewGuard);
-  enforceExpertViewGuard();
-
-  const disableBtn = document.getElementById('disableExpertBtn');
-  if (disableBtn) {
-    disableBtn.addEventListener('click', () => {
-      const currentHash = window.location.hash.replace('#', '');
-      if (EXPERT_VIEWS.includes(currentHash)) {
-        window.location.hash = '#home';
-      }
-    });
   }
 })();
