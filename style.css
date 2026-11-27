@@ -1825,6 +1825,20 @@ a.tool-link-card:hover {
   border-radius: 0;
 }
 
+.pwa-install-btn {
+  width: 100%;
+  margin-top: 8px;
+  border-color: var(--link-color);
+  color: var(--link-color);
+  font-weight: 600;
+}
+
+.pwa-install-btn:hover {
+  background-color: var(--active-bg);
+  color: var(--active-text);
+  border-color: var(--active-bg);
+}
+
 .uart-csv-drop-hint {
   font-size: 0.78rem;
   color: var(--text-muted);

@@ -26,14 +26,17 @@ if (themeToggleMobile) {
 }
 
 function applyTheme(theme) {
+  const metaTheme = document.getElementById('metaThemeColor');
   if (theme === 'dark') {
     rootElement.setAttribute('data-theme', 'dark');
     themeToggle.textContent = '☀️ ライト';
     if (themeToggleMobile) themeToggleMobile.textContent = '☀️';
+    if (metaTheme) metaTheme.setAttribute('content', '#1e293b');
   } else {
     rootElement.removeAttribute('data-theme');
     themeToggle.textContent = '🌙 ダーク';
     if (themeToggleMobile) themeToggleMobile.textContent = '🌙';
+    if (metaTheme) metaTheme.setAttribute('content', '#f4f5f7');
   }
 }
 
@@ -1698,4 +1701,50 @@ function applyWikiSearchHighlightsOnly() {
   if (!ENABLE_SYSCON_INTERNAL_PAGE && sysconNavLink) {
     sysconNavLink.style.display = 'none';
   }
+})();
+
+// ==========================================
+// PWA (Service Worker 登録 ＆ インストール案内)
+// ==========================================
+(function initPwaSupport() {
+  const isSecureHost =
+    window.location.protocol === 'https:' ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1';
+
+  if ('serviceWorker' in navigator && isSecureHost) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
+    });
+  }
+
+  const installBtn = document.getElementById('pwaInstallBtn');
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBtn) {
+      installBtn.classList.remove('hidden');
+    }
+  });
+
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      try {
+        await deferredPrompt.userChoice;
+      } catch (_) {}
+      deferredPrompt = null;
+      installBtn.classList.add('hidden');
+    });
+  }
+
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    if (installBtn) {
+      installBtn.classList.add('hidden');
+    }
+  });
 })();

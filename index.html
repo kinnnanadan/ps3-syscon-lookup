@@ -4,8 +4,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1e293b" id="metaThemeColor">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PS3 修理DB">
   <title>PS3 修理・解析データベース</title>
-  <link rel="stylesheet" href="style.css?v=20261125-1">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css?v=20261127-1">
 </head>
 
 <body>
@@ -66,6 +73,8 @@
           <button id="themeToggle" class="theme-btn" aria-label="テーマ切替">🌙 ダーク</button>
           <button id="fontSizeToggle" class="theme-btn font-size-btn" aria-label="文字サイズ切替">文字:中</button>
         </div>
+        <button type="button" id="pwaInstallBtn" class="theme-btn pwa-install-btn hidden"
+          title="デスクトップやスマホのアプリとしてインストールします">📲 アプリとしてインストール</button>
       </div>
     </aside>
 
@@ -1293,8 +1302,8 @@
     </main>
   </div>
 
-  <script src="script.js?v=20261125-1"></script>
-  <script src="syscon-uart.js?v=20261125-1"></script>
+  <script src="script.js?v=20261127-1"></script>
+  <script src="syscon-uart.js?v=20261127-1"></script>
 </body>
 
 </html>
