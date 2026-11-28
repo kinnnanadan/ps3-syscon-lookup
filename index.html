@@ -841,8 +841,8 @@
             <div class="uart-quick-view-bar">
               <span class="calc-label" style="margin:0;">表示切替:</span>
               <div class="uart-quick-view-tabs" role="group" aria-label="コマンドボタン表示形式">
-                <button type="button" id="uartQuickViewGroupedBtn" class="copy-btn active" title="機能別にグループ分けして表示">📂 カテゴリ別表示</button>
-                <button type="button" id="uartQuickViewFlatBtn" class="copy-btn" title="すべてのボタンを1箇所に並べて表示">📋 まとめて一覧表示</button>
+                <button type="button" id="uartQuickViewGroupedBtn" class="copy-btn active" data-quick-key="viewGrouped" title="機能別にグループ分けして表示">📂 カテゴリ別表示</button>
+                <button type="button" id="uartQuickViewFlatBtn" class="copy-btn" data-quick-key="viewFlat" title="すべてのボタンを1箇所に並べて表示">📋 まとめて一覧表示</button>
               </div>
             </div>
 
@@ -850,24 +850,24 @@
               <div class="uart-quick-group">
                 <div class="uart-quick-group-title">🌡 温度・ファン系</div>
                 <div class="uart-quick-group-btns">
-                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="tmp 0" disabled>🌡 tmp 0 CELL温度取得</button>
-                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="tmp 1" disabled>🌡 tmp 1 RSX温度取得</button>
-                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="tmp 14" disabled>🌡 tmp 14 SB温度取得</button>
-                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="duty get 0" disabled>🌀 duty get 0 ファン速度取得</button>
-                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="fantbl get 0" disabled>📊 fantbl get 0 CELLファン設定表</button>
-                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="fantbl get 1" disabled>📊 fantbl get 1 RSXファン設定表</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="tmp 0" data-quick-key="tmp 0" disabled>🌡 tmp 0 CELL温度取得</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="tmp 1" data-quick-key="tmp 1" disabled>🌡 tmp 1 RSX温度取得</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="tmp 14" data-quick-key="tmp 14" disabled>🌡 tmp 14 SB温度取得</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="duty get 0" data-quick-key="duty get 0" disabled>🌀 duty get 0 ファン速度取得</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="fantbl get 0" data-quick-key="fantbl get 0" disabled>📊 fantbl get 0 CELLファン設定表</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="fantbl get 1" data-quick-key="fantbl get 1" disabled>📊 fantbl get 1 RSXファン設定表</button>
                 </div>
               </div>
 
               <div class="uart-quick-group">
                 <div class="uart-quick-group-title">⚡ 電源管理系</div>
                 <div class="uart-quick-group-btns">
-                  <button type="button" class="uart-btn uart-quick-cmd uart-btn-warn" data-cmd="powersw" data-confirm="true"
+                  <button type="button" class="uart-btn uart-quick-cmd uart-btn-warn" data-cmd="powersw" data-quick-key="powersw" data-confirm="true"
                     disabled>🔘 powersw 電源ボタン押下(起動)</button>
-                  <button type="button" class="uart-btn uart-quick-cmd uart-btn-warn" data-cmd="bringup" data-confirm="true"
+                  <button type="button" class="uart-btn uart-quick-cmd uart-btn-warn" data-cmd="bringup" data-quick-key="bringup" data-confirm="true"
                     disabled>⚡ bringup 強制起動シーケンス</button>
-                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="ejectsw" disabled>⏏ ejectsw BDドライブ排出</button>
-                  <button type="button" class="uart-btn uart-quick-cmd uart-btn-danger" data-cmd="shutdown"
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="ejectsw" data-quick-key="ejectsw" disabled>⏏ ejectsw BDドライブ排出</button>
+                  <button type="button" class="uart-btn uart-quick-cmd uart-btn-danger" data-cmd="shutdown" data-quick-key="shutdown"
                     data-confirm="true" disabled>⏻ shutdown 強制電源オフ</button>
                 </div>
               </div>
@@ -875,16 +875,18 @@
               <div class="uart-quick-group">
                 <div class="uart-quick-group-title">📜 ログ・EEPROM・稼働実績系</div>
                 <div class="uart-quick-group-btns">
-                  <button type="button" id="uartFetchErrlogBtn" class="uart-btn uart-btn-primary" disabled>📜
+                  <button type="button" id="uartFetchErrlogBtn" class="uart-btn uart-btn-primary" data-quick-key="errlog" disabled>📜
                     エラーログ一括取得</button>
-                  <button type="button" class="uart-btn uart-quick-cmd uart-btn-danger" data-cmd="clearerrlog"
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="lasterrlog" data-quick-key="lasterrlog"
+                    title="最新のエラーログ1件のみを取得します（CXRでは ERRLOG GET 00 を実行）" disabled>📌 lasterrlog 最新エラーログ取得</button>
+                  <button type="button" class="uart-btn uart-quick-cmd uart-btn-danger" data-cmd="clearerrlog" data-quick-key="clearerrlog"
                     data-confirm="true"
                     data-confirm-msg="Syscon に記録されているすべてのエラーログ履歴 (errlog) を消去します。&#10;一度消去すると過去のエラーコード履歴は元に戻せません。&#10;&#10;本当に clearerrlog を実行しますか？"
                     disabled>🧹 clearerrlog エラーログ全削除</button>
-                  <button type="button" id="uartFixEepcsumBtn" class="uart-btn uart-btn-warn" disabled>🛠
+                  <button type="button" id="uartFixEepcsumBtn" class="uart-btn uart-btn-warn" data-quick-key="eepcsumFix" disabled>🛠
                     eepcsum 確認＆自動修正</button>
-                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="eepcsum" disabled>🔎 eepcsum チェックサム確認のみ</button>
-                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="becount" disabled>⏱ becount 稼働時間・起動回数</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="eepcsum" data-quick-key="eepcsum" disabled>🔎 eepcsum チェックサム確認のみ</button>
+                  <button type="button" class="uart-btn uart-quick-cmd" data-cmd="becount" data-quick-key="becount" disabled>⏱ becount 稼働時間・起動回数</button>
                 </div>
               </div>
             </div>
@@ -892,7 +894,7 @@
             <div id="uartDetectedErrors" class="uart-detected-errors hidden">
               <div class="uart-detected-header">
                 <span>検出されたエラーコード（クリックで検索へ移動）:</span>
-                <button type="button" id="uartSearchAllErrorsBtn" class="copy-btn">🔍 すべてエラー検索で開く</button>
+                <button type="button" id="uartSearchAllErrorsBtn" class="copy-btn" data-quick-key="searchAllErrors">🔍 すべてエラー検索で開く</button>
               </div>
               <div id="uartDetectedErrorsList" class="preset-group" style="margin-bottom: 0;"></div>
             </div>

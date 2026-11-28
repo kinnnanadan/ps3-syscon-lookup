@@ -7,6 +7,49 @@
   'use strict';
 
   // ==========================================
+  // 0. クイック診断ボタン 有効・無効設定（コードで切り替え）
+  // ==========================================
+  // 各ボタンを true（有効）/ false（無効）で個別に設定できます。
+  const QUICK_DIAG_BUTTONS = {
+    // 🌡 温度・ファン系
+    'tmp 0': true,          // tmp 0 CELL温度取得
+    'tmp 1': true,          // tmp 1 RSX温度取得
+    'tmp 14': true,         // tmp 14 SB温度取得
+    'duty get 0': true,     // duty get 0 ファン速度取得
+    'fantbl get 0': true,   // fantbl get 0 CELLファン設定表
+    'fantbl get 1': true,   // fantbl get 1 RSXファン設定表
+    // ⚡ 電源管理系
+    'powersw': true,        // powersw 電源ボタン押下(起動)
+    'bringup': true,        // bringup 強制起動シーケンス
+    'ejectsw': true,        // ejectsw BDドライブ排出
+    'shutdown': true,       // shutdown 強制電源オフ
+    // 📜 ログ・EEPROM・稼働実績系
+    'errlog': true,         // エラーログ一括取得
+    'lasterrlog': true,     // lasterrlog 最新エラーログ取得
+    'clearerrlog': true,    // clearerrlog エラーログ全削除
+    'eepcsumFix': true,     // eepcsum 確認＆自動修正
+    'eepcsum': true,        // eepcsum チェックサム確認のみ
+    'becount': true,        // becount 稼働時間・起動回数
+    // 🎛 クイック診断UI補助ボタン
+    'viewGrouped': true,    // カテゴリ別表示切替
+    'viewFlat': true,       // まとめて一覧表示切替
+    'searchAllErrors': true, // すべてエラー検索で開く
+  };
+  // false にしたボタンの表示方法:
+  // 'disable' = ボタンを表示したまま常に無効(押下不可)にする / 'hide' = ボタン自体を非表示にする
+  const QUICK_DIAG_DISABLED_MODE = 'disable';
+
+  function getQuickDiagBtnKey(btn) {
+    if (!btn) return '';
+    return btn.getAttribute('data-quick-key') || btn.getAttribute('data-cmd') || '';
+  }
+
+  function isQuickDiagButtonEnabled(key) {
+    if (!key) return true;
+    return QUICK_DIAG_BUTTONS[key] !== false;
+  }
+
+  // ==========================================
   // 1. 純粋JS AES-128-CBC（パディングなし・PyCryptodome互換）
   // ==========================================
   const AES_SBOX = new Uint8Array([
@@ -1370,8 +1413,8 @@
       pollToggleBtn.disabled = !connected;
       if (miniPollBtn) miniPollBtn.disabled = !connected;
       if (refreshBecountBtn) refreshBecountBtn.disabled = !connected;
-      fetchErrlogBtn.disabled = !connected;
-      if (fixEepcsumBtn) fixEepcsumBtn.disabled = !connected;
+      fetchErrlogBtn.disabled = !connected || !isQuickDiagButtonEnabled('errlog');
+      if (fixEepcsumBtn) fixEepcsumBtn.disabled = !connected || !isQuickDiagButtonEnabled('eepcsumFix');
       if (applyTempFanBtn) applyTempFanBtn.disabled = !connected;
       if (restoreTempFanBtn) restoreTempFanBtn.disabled = !connected;
       if (readVoltBtn) readVoltBtn.disabled = !connected;
@@ -1383,7 +1426,12 @@
       if (fantblExecPasteBtn) fantblExecPasteBtn.disabled = !connected;
       cmdInput.disabled = !connected;
       sendBtn.disabled = !connected;
-      quickCmdBtns.forEach(btn => { btn.disabled = !connected; });
+      quickCmdBtns.forEach(btn => {
+        btn.disabled = !connected || !isQuickDiagButtonEnabled(getQuickDiagBtnKey(btn));
+      });
+      if (quickViewGroupedBtn) quickViewGroupedBtn.disabled = !isQuickDiagButtonEnabled('viewGrouped');
+      if (quickViewFlatBtn) quickViewFlatBtn.disabled = !isQuickDiagButtonEnabled('viewFlat');
+      if (searchAllErrorsBtn) searchAllErrorsBtn.disabled = !isQuickDiagButtonEnabled('searchAllErrors');
 
       statusBadge.classList.remove('status-off', 'status-conn', 'status-auth');
       if (!connected) {
@@ -2012,6 +2060,17 @@
         return null;
       }
 
+      if (cmd.toLowerCase() === 'lasterrlog' && client.scType === 'CXR') {
+        appendLog('SYS', 'CXR モードでは ERRLOG GET 00 で最新エラーログを1件取得します...');
+        const resLast = await runInteractiveCommand('ERRLOG GET 00', { timeoutMs: 1200, idleMs: 65 });
+        if (resLast) {
+          const textLast = (resLast.lines && resLast.lines.length > 0) ? resLast.lines.join(' ') : (resLast.raw || '');
+          const codesLast = extractErrorCodes(textLast + '\n' + (resLast.raw || ''));
+          if (codesLast.length > 0) showExtractedErrors(codesLast);
+        }
+        return resLast;
+      }
+
       if (cmd.toLowerCase() === 'becount' && client.scType === 'SW') {
         appendLog('SYS', 'SW (Sherwood) は becount コマンド非対応のため r 800 8 を実行して算出します...');
         const resSw = await runInteractiveCommand('r 800 8', { timeoutMs: 2500, idleMs: 120 });
@@ -2050,7 +2109,7 @@
         if (effectiveOpts.timeoutMs === undefined) {
           if (lowerCmd === 'eepcsum' || lowerCmd === 'bringup' || lowerCmd === 'shutdown' || lowerCmd === 'powersw') {
             effectiveOpts.timeoutMs = 3500;
-          } else if (lowerCmd === 'errlog' || lowerCmd.startsWith('fantbl ') || lowerCmd.startsWith('r ')) {
+          } else if (lowerCmd === 'errlog' || lowerCmd === 'lasterrlog' || lowerCmd.startsWith('fantbl ') || lowerCmd.startsWith('r ')) {
             effectiveOpts.timeoutMs = 2500;
           }
         }
@@ -2059,7 +2118,7 @@
             effectiveOpts.idleMs = 450;
           } else if (lowerCmd === 'bringup' || lowerCmd === 'shutdown' || lowerCmd === 'powersw') {
             effectiveOpts.idleMs = 200;
-          } else if (lowerCmd === 'errlog' || lowerCmd.startsWith('fantbl ') || lowerCmd.startsWith('r ')) {
+          } else if (lowerCmd === 'errlog' || lowerCmd === 'lasterrlog' || lowerCmd.startsWith('fantbl ') || lowerCmd.startsWith('r ')) {
             effectiveOpts.idleMs = 120;
           }
         }
@@ -2677,7 +2736,10 @@
     }
 
     if (fixEepcsumBtn) {
-      fixEepcsumBtn.addEventListener('click', () => fixEepcsum(false));
+      fixEepcsumBtn.addEventListener('click', () => {
+        if (!isQuickDiagButtonEnabled('eepcsumFix')) return;
+        fixEepcsum(false);
+      });
     }
 
     // 一時ファン固定モード（fantbl set 0/1 p0 ＋ 元の制御に戻す）UI・送信
@@ -3998,7 +4060,7 @@
     });
 
     fetchErrlogBtn.addEventListener('click', async () => {
-      if (!client.connected) return;
+      if (!client.connected || !isQuickDiagButtonEnabled('errlog')) return;
       if (client.scType === 'CXR') {
         appendLog('SYS', 'CXR モードでエラーログ (00〜1F) を高速一括取得します...');
         const collected = [];
@@ -4022,6 +4084,8 @@
 
     quickCmdBtns.forEach(btn => {
       btn.addEventListener('click', async () => {
+        const key = getQuickDiagBtnKey(btn);
+        if (!isQuickDiagButtonEnabled(key)) return;
         const cmd = btn.getAttribute('data-cmd');
         if (!cmd) return;
         if (btn.hasAttribute('data-confirm')) {
@@ -4039,7 +4103,10 @@
     });
 
     if (searchAllErrorsBtn) {
-      searchAllErrorsBtn.addEventListener('click', () => jumpToErrorSearch(extractedCodes));
+      searchAllErrorsBtn.addEventListener('click', () => {
+        if (!isQuickDiagButtonEnabled('searchAllErrors')) return;
+        jumpToErrorSearch(extractedCodes);
+      });
     }
 
     async function handleSendInput() {
@@ -4648,6 +4715,32 @@
       });
     }
 
+    function applyQuickDiagButtonConfig() {
+      const quickPanel = viewEl.querySelector('[data-panel-id="panel-quick"]');
+      if (!quickPanel) return;
+      const hideDisabled = QUICK_DIAG_DISABLED_MODE === 'hide';
+
+      quickPanel.querySelectorAll('[data-quick-key]').forEach((btn) => {
+        const key = getQuickDiagBtnKey(btn);
+        const enabled = isQuickDiagButtonEnabled(key);
+        btn.classList.toggle('hidden', !enabled && hideDisabled);
+        if (!enabled) btn.disabled = true;
+      });
+
+      quickPanel.querySelectorAll('.uart-quick-group').forEach((group) => {
+        const groupBtns = group.querySelectorAll('[data-quick-key]');
+        const anyVisible = Array.from(groupBtns).some((b) => !b.classList.contains('hidden'));
+        group.classList.toggle('hidden', !anyVisible);
+      });
+
+      const viewBar = quickPanel.querySelector('.uart-quick-view-bar');
+      if (viewBar) {
+        const viewBtns = viewBar.querySelectorAll('[data-quick-key]');
+        const anyViewVisible = Array.from(viewBtns).some((b) => !b.classList.contains('hidden'));
+        viewBar.classList.toggle('hidden', !anyViewVisible);
+      }
+    }
+
     // クイック診断コマンド カテゴリ別/一覧 表示切り替え
     let quickViewMode = localStorage.getItem('uartQuickViewMode') === 'flat' ? 'flat' : 'grouped';
     function applyQuickViewMode(mode) {
@@ -4657,9 +4750,16 @@
       if (quickViewGroupedBtn) quickViewGroupedBtn.classList.toggle('active', quickViewMode === 'grouped');
       if (quickViewFlatBtn) quickViewFlatBtn.classList.toggle('active', quickViewMode === 'flat');
     }
-    if (quickViewGroupedBtn) quickViewGroupedBtn.addEventListener('click', () => applyQuickViewMode('grouped'));
-    if (quickViewFlatBtn) quickViewFlatBtn.addEventListener('click', () => applyQuickViewMode('flat'));
+    if (quickViewGroupedBtn) quickViewGroupedBtn.addEventListener('click', () => {
+      if (!isQuickDiagButtonEnabled('viewGrouped')) return;
+      applyQuickViewMode('grouped');
+    });
+    if (quickViewFlatBtn) quickViewFlatBtn.addEventListener('click', () => {
+      if (!isQuickDiagButtonEnabled('viewFlat')) return;
+      applyQuickViewMode('flat');
+    });
     applyQuickViewMode(quickViewMode);
+    applyQuickDiagButtonConfig();
 
     if (chartCanvas) {
       chartCanvas.addEventListener('mousemove', (e) => {
