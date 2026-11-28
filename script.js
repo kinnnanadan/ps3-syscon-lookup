@@ -95,7 +95,9 @@ if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
 // --- 画面切り替え（ルーター）処理 ---
 const navItems = document.querySelectorAll('.nav-item');
 const pageViews = document.querySelectorAll('.page-view');
+// --- 機能公開・PWA設定フラグ ---
 const ENABLE_SYSCON_INTERNAL_PAGE = false;
+const ENABLE_PWA = false; // true: PWA有効 / false: PWA無効（既存SW解除・キャッシュ削除）
 let currentActiveView = 'home';
 let uartDisclaimerAccepted = false;
 
@@ -1707,6 +1709,33 @@ function applyWikiSearchHighlightsOnly() {
 // PWA (Service Worker 登録 ＆ インストール案内)
 // ==========================================
 (function initPwaSupport() {
+  const installBtn = document.getElementById('pwaInstallBtn');
+
+  if (!ENABLE_PWA) {
+    if (installBtn) {
+      installBtn.classList.add('hidden');
+    }
+    const manifestLink = document.querySelector('link[rel="manifest"]');
+    if (manifestLink) {
+      manifestLink.remove();
+    }
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then((regs) => Promise.all(regs.map((reg) => reg.unregister().catch(() => {}))))
+        .catch(() => {});
+    }
+    if ('caches' in window) {
+      caches.keys()
+        .then((keys) => Promise.all(
+          keys
+            .filter((key) => key.startsWith('ps3-syscon-db-'))
+            .map((key) => caches.delete(key).catch(() => {}))
+        ))
+        .catch(() => {});
+    }
+    return;
+  }
+
   const isSecureHost =
     window.location.protocol === 'https:' ||
     window.location.hostname === 'localhost' ||
@@ -1718,7 +1747,6 @@ function applyWikiSearchHighlightsOnly() {
     });
   }
 
-  const installBtn = document.getElementById('pwaInstallBtn');
   let deferredPrompt = null;
 
   window.addEventListener('beforeinstallprompt', (e) => {
