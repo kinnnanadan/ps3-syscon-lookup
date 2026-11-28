@@ -133,7 +133,7 @@
 
               <a href="#uart-monitor" class="tool-link-card" data-view="uart-monitor">
                 <div class="tool-card-title">⚡ Syscon UART 接続・リアルタイム監視</div>
-                <p>Web Serial API を利用してPCのUSB-TTLアダプタと直接通信し、AUTH認証・エラーログ取得・温度/ファン速度のリアルタイム監視を行えます（実験版）。</p>
+                <p>Web Serial API（PC）または WebUSB API（Android スマホ + USB-OTG）を利用してUSB-TTLアダプタと直接通信し、AUTH認証・エラーログ取得・温度/ファン速度のリアルタイム監視を行えます（実験版）。</p>
                 <span class="tool-card-action">ツールを開く →</span>
               </a>
             </div>
@@ -552,7 +552,7 @@
               <div>
                 <h1>⚡ <span id="uartSecretTitleText">Syscon UART 接続</span>・リアルタイム監視（実験版）</h1>
                 <p class="site-description">
-                  ブラウザの Web Serial API を使用し、USB-TTL アダプタ経由で Syscon と直接通信します。<code>time.sleep(1)</code>
+                  ブラウザの Web Serial API（PC）/ WebUSB API（Android + USB-OTG）を使用し、USB-TTL アダプタ経由で Syscon と直接通信します。<code>time.sleep(1)</code>
                   による固定待機を行わず、応答終端を即時判定するため高速に応答します。
                 </p>
               </div>
@@ -578,9 +578,8 @@
           </div>
 
           <div id="uartApiWarning" class="warning-box hidden" role="alert">
-            <strong>Web Serial API が利用できません</strong><br>
-            この機能は PC 版 <strong>Google Chrome / Microsoft Edge</strong> かつ <strong>HTTPS（または localhost）環境</strong>
-            でのみ動作します。<code>file://</code> 直開きや Firefox / Safari / モバイルブラウザではポート接続を利用できません。
+            <strong>Web Serial API / WebUSB API が利用できません</strong><br>
+            この機能は PC 版 <strong>Google Chrome / Microsoft Edge</strong>（Web Serial）または Android 版 <strong>Google Chrome</strong>（WebUSB + USB-OTG）の <strong>HTTPS（または localhost）環境</strong>でのみ動作します。<code>file://</code> 直開きや Firefox / iOS Safari ではポート接続を利用できません。
           </div>
 
           <!-- 稼働実績 ＆ リアルタイム温度・ファンサマリーバー -->
@@ -687,6 +686,16 @@
                   <input type="checkbox" id="uartAutoAuth" checked>
                   接続直後に自動で AUTH を実行
                 </label>
+              </div>
+
+              <div class="uart-field">
+                <label for="uartTransportMode" class="calc-label">通信方式（PC / Android）</label>
+                <select id="uartTransportMode" class="uart-select">
+                  <option value="auto" selected>自動選択（PC: Web Serial / Android: WebUSB）</option>
+                  <option value="serial">Web Serial API（PC Chrome / Edge）</option>
+                  <option value="webusb">WebUSB API（Android Chrome + USB-OTG）</option>
+                </select>
+                <p id="uartTransportHint" class="site-description" style="font-size:0.78rem; margin:2px 0 0 0;"></p>
               </div>
 
               <div class="uart-btn-group">
@@ -1302,8 +1311,9 @@
     </main>
   </div>
 
-  <script src="script.js?v=20261127-1"></script>
-  <script src="syscon-uart.js?v=20261127-1"></script>
+  <script src="script.js?v=20261128-1"></script>
+  <script src="webusb-serial.js?v=20261128-1"></script>
+  <script src="syscon-uart.js?v=20261128-1"></script>
 </body>
 
 </html>

@@ -110,7 +110,7 @@ function switchView(viewName) {
   if (activeName === 'uart-monitor' && !uartDisclaimerAccepted) {
     const agreed = window.confirm(
       '【重要・免責事項】Syscon UART 接続機能について\n\n' +
-      '本機能は Web Serial API を使用して PS3 の Syscon と直接通信を行います。\n' +
+      '本機能は Web Serial API / WebUSB API を使用して PS3 の Syscon と直接通信を行います。\n' +
       '・必ず 3.3V TTL アダプタを使用してください（5V 印加は破損の原因になります）。\n' +
       '・EEPROM 書き換え（w / fantbl setini 等）や電圧変更の操作を誤ると、PS3 本体が起動不能（ブリック）になる恐れがあります。\n' +
       '・作業前の EEPROM バックアップ取得を強く推奨します。\n\n' +

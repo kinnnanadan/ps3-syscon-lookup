@@ -218,14 +218,27 @@
     '0000000000000000000000000000000000000000000000000000000000000000';
 
   // ==========================================
-  // 3. Web Serial Syscon クライアント（非同期・高速応答版）
+  // 3. Web Serial / WebUSB Syscon クライアント（非同期・高速応答版）
   // ==========================================
+  function hasWebSerial() {
+    return typeof navigator !== 'undefined' && 'serial' in navigator;
+  }
+
+  function hasWebUsb() {
+    return typeof window !== 'undefined' && Boolean(window.WebUsbSerial && window.WebUsbSerial.isSupported());
+  }
+
+  function hasAnySerialTransport() {
+    return hasWebSerial() || hasWebUsb();
+  }
+
   class WebSysconUART {
     constructor() {
       this.port = null;
       this.reader = null;
       this.writer = null;
       this.scType = 'CXRF';
+      this.transportPref = 'auto'; // 'auto' | 'serial' | 'webusb'
       this.connected = false;
       this.authenticated = false;
       this.rxBuffer = '';
@@ -242,11 +255,31 @@
       return type === 'CXRF' ? 115200 : 57600;
     }
 
-    async connect(scType) {
-      if (!('serial' in navigator)) {
-        throw new Error('このブラウザは Web Serial API に対応していません（PC版 Chrome / Edge をご利用ください）。');
+    resolveTransport() {
+      if (this.transportPref === 'serial') {
+        return hasWebSerial() ? 'serial' : null;
       }
-      const port = await navigator.serial.requestPort();
+      if (this.transportPref === 'webusb') {
+        return hasWebUsb() ? 'webusb' : null;
+      }
+      if (hasWebSerial()) return 'serial';
+      if (hasWebUsb()) return 'webusb';
+      return null;
+    }
+
+    async requestPort() {
+      const mode = this.resolveTransport();
+      if (mode === 'serial') {
+        return navigator.serial.requestPort();
+      }
+      if (mode === 'webusb') {
+        return window.WebUsbSerial.requestPort();
+      }
+      throw new Error('このブラウザは Web Serial / WebUSB に対応していません（PC版 Chrome / Edge、または Android版 Chrome + USB-OTG をご利用ください）。');
+    }
+
+    async connect(scType) {
+      const port = await this.requestPort();
       await this.connectPort(port, scType);
     }
 
@@ -271,6 +304,9 @@
       this.writer = port.writable.getWriter();
       this.reader = port.readable.getReader();
       this.readingPromise = this._readLoop();
+      if (port && port.isWebUsb && this.onLog) {
+        this.onLog('SYS', `WebUSB 接続 (${port.driverName}): ${port.deviceLabel} @ ${baudRate} bps`);
+      }
     }
 
     async reopenAs(scType) {
@@ -1077,6 +1113,8 @@
     const manualPanel = document.getElementById('uartManualPanel');
     const autoModelSelect = document.getElementById('uartAutoModel');
     const scTypeSelect = document.getElementById('uartScType');
+    const transportSelect = document.getElementById('uartTransportMode');
+    const transportHintEl = document.getElementById('uartTransportHint');
     const autoAuthCheckbox = document.getElementById('uartAutoAuth');
     const connectBtn = document.getElementById('uartConnectBtn');
     const disconnectBtn = document.getElementById('uartDisconnectBtn');
@@ -1237,10 +1275,47 @@
     let lastWizardPort = null;
 
     if (apiWarning) {
-      apiWarning.classList.toggle('hidden', 'serial' in navigator);
+      apiWarning.classList.toggle('hidden', hasAnySerialTransport());
     }
 
     const client = new WebSysconUART();
+
+    function updateTransportHint() {
+      if (!transportHintEl) return;
+      const active = client.resolveTransport();
+      if (active === 'webusb') {
+        transportHintEl.textContent = '📱 Android WebUSB モード（FTDI / CP210x / CH340 / PL2303 / CDC-ACM 対応・USB-OTG 接続）';
+      } else if (active === 'serial') {
+        transportHintEl.textContent = hasWebUsb()
+          ? '💻 PC Web Serial モード（Android 向け WebUSB にも切替可能）'
+          : '💻 Web Serial モード';
+      } else {
+        transportHintEl.textContent = '⚠️ 利用可能な通信 API（Web Serial / WebUSB）が見つかりません。';
+      }
+    }
+
+    if (transportSelect) {
+      const optSerial = transportSelect.querySelector('option[value="serial"]');
+      const optWebUsb = transportSelect.querySelector('option[value="webusb"]');
+      if (optSerial && !hasWebSerial()) optSerial.disabled = true;
+      if (optWebUsb && !hasWebUsb()) optWebUsb.disabled = true;
+
+      try {
+        const savedPref = localStorage.getItem('ps3_uart_transport_pref');
+        if (savedPref === 'auto' || (savedPref === 'serial' && hasWebSerial()) || (savedPref === 'webusb' && hasWebUsb())) {
+          transportSelect.value = savedPref;
+          client.transportPref = savedPref;
+        }
+      } catch (_) {}
+
+      transportSelect.addEventListener('change', () => {
+        client.transportPref = transportSelect.value;
+        try { localStorage.setItem('ps3_uart_transport_pref', client.transportPref); } catch (_) {}
+        updateTransportHint();
+        updateUiState();
+      });
+    }
+    updateTransportHint();
     let pollTimer = null;
     let isPolling = false;
     let pollInFlight = false;
@@ -1284,7 +1359,8 @@
       const connected = client.connected;
       const authed = client.authenticated;
 
-      connectBtn.disabled = connected || !('serial' in navigator);
+      connectBtn.disabled = connected || !client.resolveTransport();
+      if (transportSelect) transportSelect.disabled = connected;
       if (connStyleAutoRadio) connStyleAutoRadio.disabled = connected;
       if (connStyleManualRadio) connStyleManualRadio.disabled = connected;
       if (autoModelSelect) autoModelSelect.disabled = connected;
@@ -2400,7 +2476,7 @@
           try {
             await client.connectPort(port, 'CXRF');
           } catch (_) {
-            port = await navigator.serial.requestPort();
+            port = await client.requestPort();
             lastWizardPort = port;
             await client.connectPort(port, 'CXRF');
           }
@@ -5624,13 +5700,26 @@
     // USB抜去時の安全停止
     if ('serial' in navigator) {
       navigator.serial.addEventListener('disconnect', async (e) => {
-        if (client.port && e.target === client.port) {
+        if (client.port && !client.port.isWebUsb && e.target === client.port) {
           stopPolling();
           await client.disconnect();
           resetBecountDisplay('--');
           resetVoltCurrentDisplay();
           updateMiniTelemetry(null);
           appendLog('SYS', 'USBシリアルデバイスが取り外されました');
+          updateUiState();
+        }
+      });
+    }
+    if ('usb' in navigator) {
+      navigator.usb.addEventListener('disconnect', async (e) => {
+        if (client.port && client.port.isWebUsb && e.device === client.port.usbDevice) {
+          stopPolling();
+          await client.disconnect();
+          resetBecountDisplay('--');
+          resetVoltCurrentDisplay();
+          updateMiniTelemetry(null);
+          appendLog('SYS', 'WebUSB デバイスが取り外されました');
           updateUiState();
         }
       });

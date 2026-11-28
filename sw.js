@@ -1,9 +1,10 @@
-const CACHE_NAME = 'ps3-syscon-db-v20261127-1';
+const CACHE_NAME = 'ps3-syscon-db-v20261128-1';
 const PRECACHE_URLS = [
   './',
   './index.html',
   './style.css',
   './script.js',
+  './webusb-serial.js',
   './syscon-uart.js',
   './errors.json',
   './wiki.json',

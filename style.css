@@ -2832,15 +2832,18 @@ a.tool-link-card:hover {
     top: auto !important;
     width: 100% !important;
   }
-  .uart-split-layout.dock-right {
+  .uart-split-layout.dock-right,
+  .uart-split-layout.dock-left {
     flex-direction: column;
   }
-  .uart-split-layout.dock-right .uart-console-pane {
+  .uart-split-layout.dock-right .uart-console-pane,
+  .uart-split-layout.dock-left .uart-console-pane {
     width: 100% !important;
     position: static;
     height: auto;
   }
-  .uart-split-layout.dock-right .uart-console-card .uart-terminal {
+  .uart-split-layout.dock-right .uart-console-card .uart-terminal,
+  .uart-split-layout.dock-left .uart-console-card .uart-terminal {
     flex: 0 0 280px;
     height: 280px;
   }
