@@ -26,7 +26,7 @@
     // 📜 ログ・EEPROM・稼働実績系
     'errlog': true,         // エラーログ一括取得
     'lasterrlog': true,     // lasterrlog 最新エラーログ取得
-    'clearerrlog': true,    // clearerrlog エラーログ全削除
+    'clearerrlog': false,    // clearerrlog エラーログ全削除
     'eepcsumFix': true,     // eepcsum 確認＆自動修正
     'eepcsum': true,        // eepcsum チェックサム確認のみ
     'becount': true,        // becount 稼働時間・起動回数
